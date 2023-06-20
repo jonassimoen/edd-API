@@ -1,0 +1,41 @@
+{
+  "name": "fantasyteamapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon --watch src -e ts,tsx --exec ts-node src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "eslint --ext js,jsx,ts,tsx,json ./src",
+    "lint:fix": "eslint --ext js,jsx,ts,tsx,json ./src --fix"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^8.3.0",
+    "@fastify/cors": "^8.2.1",
+    "@fastify/static": "^6.10.2",
+    "@prisma/client": "^4.14.1",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.17.0",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.0",
+    "lodash": "^4.17.21",
+    "prisma": "^4.14.1",
+    "qs": "^6.11.2"
+  },
+  "devDependencies": {
+    "@types/config": "^3.3.0",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/lodash": "^4.14.195",
+    "@types/node": "^20.2.1",
+    "@types/qs": "^6.9.7",
+    "eslint": "^8.41.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.0.4"
+  }
+}

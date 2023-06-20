@@ -1,0 +1,235 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MatchEventType {
+  Goal
+  Assist
+  SubstituteIn
+  SubstituteOut
+  PenaltyScored
+  PenaltyMissed
+  PenaltySaved
+  YellowCard
+  SecondYellowCard
+  RedCard
+  Starting
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  firstName String
+  lastName  String
+  avatar    String?
+  email     String  @unique
+  city      String?
+  street    String?
+  streetNr  String?
+  postCode  String?
+  // favoriteClubId String
+  // registerInfo String
+  role      Int
+
+  teams Team[]
+}
+
+model Player {
+  id          Int     @id @default(autoincrement())
+  banned      Int?
+  captain     Int?
+  clubId      Int?
+  externalId  Int?
+  // fieldOrder: usage ??
+  forename    String
+  form        Int?
+  // info: usage?
+  injury      Int?
+  name        String
+  portraitUrl String?
+  positionId  Int?
+  setPieces   Int?
+  short       String?
+  // squadStatus, squadDepth: usage?
+  star        Int?
+  surname     String
+  value       Float?
+
+  selections Selection[]
+  club       Club?        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  MatchEvent MatchEvent[]
+  stats      Statistic[]
+}
+
+model Statistic {
+  id Int @id @default(autoincrement())
+
+  playerId Int
+  matchId  Int
+
+  teamPoints Int @default(0)
+  points     Int @default(0)
+
+  goals   Int @default(0)
+  assists Int @default(0)
+
+  match  Match  @relation(fields: [matchId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+}
+
+model Club {
+  id         Int    @id @default(autoincrement())
+  externalId Int    @unique
+  name       String
+  short      String
+
+  players   Player[]
+  HomeMatch Match[]  @relation("homeMatch")
+  AwayMatch Match[]  @relation("awayMatch")
+}
+
+model Team {
+  // add extra info ?
+  id      Int      @id @default(autoincrement())
+  badge   String?
+  budget  Int
+  created DateTime @db.Timestamptz()
+  name    String
+  points  Int      @default(0)
+  rank    Int      @default(0)
+  userId  Int
+  valid   Boolean
+  value   Int
+  weekId  Int?
+
+  selections Selection[]
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  week Week? @relation(fields: [weekId], references: [id], onDelete: Cascade)
+}
+
+model Week {
+  id           Int      @id @default(autoincrement())
+  deadlineDate DateTime @db.Timestamptz()
+  Team         Team[]
+  Match        Match[]
+  validated    Boolean  @default(false)
+}
+
+model Selection {
+  id       Int    @id @default(autoincrement())
+  captain  Int    @default(0)
+  played   Int    @default(0)
+  teamId   Int
+  playerId Int
+  points   Int    @default(0)
+  value    Int
+  starting Int    @default(0)
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+}
+
+model Match {
+  id         Int      @id @default(autoincrement())
+  externalId Int      @unique
+  weekId     Int?
+  // roundId Int
+  date       DateTime @db.Timestamptz()
+  postponed  Int?
+  homeScore  Int?     @default(-1)
+  awayScore  Int?     @default(-1)
+  homeId     Int
+  awayId     Int
+
+  home Club @relation(name: "homeMatch", fields: [homeId], references: [id])
+  away Club @relation(name: "awayMatch", fields: [awayId], references: [id])
+
+  week       Week?        @relation(fields: [weekId], references: [id])
+  MatchEvent MatchEvent[]
+  Statistic  Statistic[]
+}
+
+model MatchEvent {
+  id       Int            @id @default(autoincrement())
+  type     MatchEventType
+  matchId  Int
+  playerId Int
+  minute   Int
+
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+}
+
+// model WeeksOnTeams {
+//   week   Week @relation(fields: [weekId], references: [id])
+//   team   Team @relation(fields: [teamId], references: [id])
+//   weekId Int
+//   teamId Int
+
+//   @@id([weekId, teamId])
+// }
+
+// export interface Player {
+//   id: number
+//   name: string
+//   short: string
+//   forename: string
+//   surname: string
+//   positionId: number
+//   externalId?: number
+//   value: number
+//   ban?: number
+//   injury?: number
+//   form?: number
+//   squadDepth?: number
+//   fieldOrder: number
+//   info?: number
+//   portraitUrl: string
+//   star: number
+//   setPieces: number
+//   captain: number
+//   caps: number
+//   squadStatus?: string
+//   clubId: number
+// }
+
+// export interface Club {
+//   id: number
+//   name: string
+//   short: string
+//   styling: any
+//   externalId: number
+// }
+
+// export interface DeadlineInfo {
+//   displayWeek: number
+//   deadlineWeek: number
+//   deadlineDate: string
+//   rosterEndWeek: number
+// }
+
+// export interface Week {
+//   weekId: number
+//   roundId: any
+//   deadlineDate: string
+// }
+
+// export interface Round {
+//   roundId: any
+//   deadlineDate: string
+// }
+
+// export interface Club {
+//   id: number
+//   name: string
+//   short: string
+//   styling: any
+//   externalId: number
+// }

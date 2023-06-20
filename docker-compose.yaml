@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres
+    container_name: local_db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=jonas
+      - POSTGRES_PASSWORD=jonas
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+
+  pgAdmin:
+    image: dpage/pgadmin4
+    container_name: local_pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=jonassimoenzele@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
+volumes:
+  pgadmin:
+  pgdata:
