@@ -18,16 +18,14 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
             value: true,
         }
     });
-    console.log(req.body);
-    console.log(allIds);
 
     const allWithValues = allIds.map((id: number) => {
-        const player = all.find((p) => p.id === id)
+        const player = all.find((p) => p.id === id);
         return {
             playerId: id,
             value: (player ? player.value : 0),
             captain: (id === req.body.captain) ? 1 : 0,
-            starting: player ? player?.id in req.body.starting : 0
+            starting: player ? (req.body.starting.includes(player?.id) ? 1 : 0) : 0
         }
     });
 
@@ -52,13 +50,19 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
             created: new Date(Date.now()),
             name: req.body.teamName
         },
-        select: {
-            name: true,
-            userId: true,
-            id: true,
+        include: {
+            selections:true,
+            user: true,
         }
     });
-    rep.send(team);
+    rep.send({
+        user: team.user,
+        team: {
+            id: team.id, 
+            name: team.name, 
+        },
+        players: team.selections.map(selection => selection.id)
+    });
 }
 
 export const PostCopyTeamHandler = async (req: any, rep: any) => {
@@ -87,11 +91,11 @@ export const GetTeamHandler = async (req: any, rep: any) => {
     const players = playersWithMultipleSelections.map(({selections, ...rest}) => ({
         ...rest,
         selection: selections[0]
-    }))
+    })).sort((p1, p2) => p2.selection.starting - p1.selection.starting);
     const team = await prisma.team.findFirst({
         where: {
             id: +req.params.id
-        },
+        }
     });
     rep.send({team, players});
 }
