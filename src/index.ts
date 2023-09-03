@@ -25,11 +25,13 @@ server.register(cors, {
 server.register(cookies, {
 	hook: "onRequest",
 });
+console.log(path.join(__dirname, '../static'))
 
 server.register(fastifyStatic, {
-	root: path.join(__dirname, 'assets'),
-	prefix: '/static',
-	list: true
+	root: path.join(__dirname, '../static'),
+	prefix: '/static/',
+	list: true,
+	index: false,
 });
 
 server.register(PublicRouter, { prefix: "/api" })
