@@ -51,15 +51,15 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
             name: req.body.teamName
         },
         include: {
-            selections:true,
+            selections: true,
             user: true,
         }
     });
     rep.send({
         user: team.user,
         team: {
-            id: team.id, 
-            name: team.name, 
+            id: team.id,
+            name: team.name,
         },
         players: team.selections.map(selection => selection.id)
     });
@@ -88,20 +88,36 @@ export const GetTeamHandler = async (req: any, rep: any) => {
             }
         }
     });
-    const players = playersWithMultipleSelections.map(({selections, ...rest}) => ({
+    const players = playersWithMultipleSelections.map(({ selections, ...rest }) => ({
         ...rest,
         selection: selections[0]
-    })).sort((p1, p2) => p2.selection.starting - p1.selection.starting);
+    })).sort((p1, p2) => (p2.selection.starting !== p1.selection.starting) ? (p2.selection.starting - p1.selection.starting) : ((p1.positionId || 0) - (p2.positionId || 0)));
     const team = await prisma.team.findFirst({
         where: {
             id: +req.params.id
         }
     });
-    rep.send({team, players});
+    rep.send({ team, players });
 }
 
 export const GetPointsTeamHandler = async (req: any, rep: any) => {
+    const players = await prisma.player.findMany({
+        include: {
+            selections: true,   
+        },
+        where: {
+            selections: {
+                some: {
+                    teamId: +req.params.id,
+                    team: {
+                        // weekId: +req.params.weekId,
+                    }
+                }
+            }
+        }
 
+    });
+    rep.send(players);
 }
 
 export const PostBoosterTeamHandler = async (req: any, rep: any) => {
@@ -109,7 +125,6 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 }
 
 export const PostNameTeamHandler = async (req: any, rep: any) => {
-
 }
 
 export const PostEditTeamHandler = async (req: any, rep: any) => {
@@ -117,7 +132,41 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 }
 
 export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
-
+    try {
+        await prisma.$transaction(
+            [].concat(
+                req.body.starting.map((startingPlayerId: number) =>
+                    prisma.selection.update({
+                        where: {
+                            playerId_teamId: {
+                                playerId: startingPlayerId,
+                                teamId: +req.params.id
+                            } 
+                        },
+                        data: {
+                            starting: 1
+                        }
+                    })
+                ),
+                req.body.bench.map((benchPlayerId: number) =>
+                    prisma.selection.update({
+                        where: {
+                            playerId_teamId: {
+                                playerId: benchPlayerId,
+                                teamId: +req.params.id
+                            } 
+                        },
+                        data: {
+                            starting: 0
+                        }
+                    })
+                ),
+            )
+        );
+        rep.send({msg: "Ploeg is aangepast."});
+    } catch(e) {
+        rep.status(406);
+    }
 }
 
 export const PostTransfersTeamHandler = async (req: any, rep: any) => {

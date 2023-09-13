@@ -7,6 +7,9 @@ export const GetMatchesHandler = async (req: any, rep: any) => {
         include: {
             home: true,
             away: true
+        },
+        orderBy: {
+            date: 'asc'
         }
     });
     rep.send(matches);

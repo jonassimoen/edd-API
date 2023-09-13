@@ -1,7 +1,11 @@
 import { prisma } from "@/db/client"
 
 export const GetWeeksHandler = async (req: any, rep: any) => {
-    const weeks = await prisma.week.findMany({});
+    const weeks = await prisma.week.findMany({
+        orderBy: {
+            id: 'asc'
+        }
+    });
     rep.send(weeks);
 }
 
@@ -38,4 +42,30 @@ export const PostWeeksHandler = async (req: any, rep: any) => {
 
 export const DeleteWeekHandler = async (req: any, rep: any) => {
 
+}
+export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
+    const weeks = await prisma.week.findMany({
+        orderBy: {
+            id: 'asc'
+        }
+    });
+    const deadlineWeek = await prisma.week.findFirst({
+        where: {
+            deadlineDate: {
+                gte: new Date()
+            }
+        },
+        orderBy: {
+            deadlineDate: 'asc',
+        }
+    })
+    rep.send({
+        deadlineInfo: {
+            deadlineDate: deadlineWeek?.deadlineDate,
+            deadlineWeek: deadlineWeek?.id,
+            displayWeek: (deadlineWeek?.id || 0) + 1,
+            endWeek: weeks[weeks.length - 1].id,
+        },
+        weeks
+    });
 }
