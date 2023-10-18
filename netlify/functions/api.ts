@@ -10,7 +10,7 @@ import path from "path";
 import { AdminRouter, PublicRouter } from "@/routers/Main";
 dotenv.config();
 
-const api = fastify();
+export const api = fastify();
 api.addHook("preHandler", deserializeUser);
 
 api.register(cors, {
@@ -37,4 +37,13 @@ api.get("/ping", (req: any, res: any) => {
 });
 
 
-export const handler = serverless(api);
+// export const handler = serverless(api);
+if(require.main === module) {
+    api.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, address) => {
+        if (err) {
+            console.error(err);
+            process.exit(1);
+        }
+        console.log(`Server listening at ${address}`);
+    });
+}
