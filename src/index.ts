@@ -10,7 +10,7 @@ import fastifyStatic from "@fastify/static";
 import path from "path";
 dotenv.config();
 
-const server = fastify({
+export const server = fastify({
 
 })
 
