@@ -1,4 +1,4 @@
-import HttpError from "@/utils/HttpError";
+import HttpError from "@utils/HttpError";
 
 export const requireAdmin = (req: any, rep: any, done: any) => {
 	const user = req.user;

@@ -14,7 +14,15 @@
     "skipLibCheck": true,
     "baseUrl": "src",
     "paths": {
-     "@/*": ["*"]
+     "@/*": ["*"],
+     "@assets/*": ["assets/*"],
+     "@controllers/*": ["controllers/*"],
+     "@db/*": ["db/*"],
+     "@middleware/*": ["middleware/*"],
+     "@routers/*": ["routers/*"],
+     "@services/*": ["services/*"],
+     "@types/*": ["types/*"],
+     "@utils/*": ["utils/*"],
     }
   }
 }

@@ -1,7 +1,7 @@
-import HealthCheck from "@/controllers/HealthCheck";
-import { DeletePlayerHandler, GetPlayersHandler, ImportPlayersHandler, PostPlayerHandler, PutPlayerHandler } from "@/controllers/Player";
-import { RequireUser } from "@/middleware/RequireUser";
-import { PlayerPostSchema, PlayerPutSchema } from "@/types/body-schema";
+import HealthCheck from "@controllers/HealthCheck";
+import { DeletePlayerHandler, GetPlayersHandler, ImportPlayersHandler, PostPlayerHandler, PutPlayerHandler } from "@controllers/Player";
+import { RequireUser } from "@middleware/RequireUser";
+import { PlayerPostSchema, PlayerPutSchema } from "@types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicPlayerRouter: FastifyPluginAsync = async server => {

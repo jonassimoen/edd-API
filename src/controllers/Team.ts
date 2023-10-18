@@ -1,5 +1,5 @@
-import { prisma } from "@/db/client"
-import HttpError from "@/utils/HttpError";
+import { prisma } from "@db/client"
+import HttpError from "@utils/HttpError";
 
 export const PostAddTeamHandler = async (req: any, rep: any) => {
 

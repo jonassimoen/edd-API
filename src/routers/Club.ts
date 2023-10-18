@@ -1,6 +1,6 @@
-import { DeleteClubHandler, GetClubHandler, GetClubsHandler, ImportClubsHandler, PostClubHandler, PutClubHandler } from "@/controllers/Club";
-import { RequireUser } from "@/middleware/RequireUser";
-import { ClubPostSchema, ClubPutSchema } from "@/types/body-schema";
+import { DeleteClubHandler, GetClubHandler, GetClubsHandler, ImportClubsHandler, PostClubHandler, PutClubHandler } from "@controllers/Club";
+import { RequireUser } from "@middleware/RequireUser";
+import { ClubPostSchema, ClubPutSchema } from "@types/body-schema";
 import { FastifyPluginAsync } from "fastify"
 
 export const PublicClubRouter: FastifyPluginAsync = async server => {

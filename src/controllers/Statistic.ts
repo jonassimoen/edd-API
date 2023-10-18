@@ -1,5 +1,5 @@
-import { prisma } from "@/db/client"
-import HttpError from "@/utils/HttpError";
+import { prisma } from "@db/client"
+import HttpError from "@utils/HttpError";
 import axios from "axios";
 
 export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
@@ -102,10 +102,38 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
         throw new HttpError(Object.values(res.data.errors).reduce((s, v) => `${s}${v} `, '') as string, 429)
     }
     const converted = res.data.response.map((resp: any) => {
-        return resp.players.map((player: any) => ({
-            playerId: player.player.id,
-            goals: player.statistics[0].goals.total ? player.statistics[0].goals.total : 0,
-        }));
+        return resp.players.map((player: any) => {
+            const stats = player.statistics[0];
+
+            return ({
+                playerId: player.player.id,
+                minutesPlayed: stats.games.minutes || 0,
+                shots: stats.shots.total || 0,
+                shotsOnTarget: stats.shots.on || 0,
+                goals: stats.goals.total || 0,
+                assists: stats.goals.assists || 0,
+                saves: stats.goals.saves || 0,
+                keyPasses: stats.passes.key || 0,
+                passAccuracy: stats.passes.accuracy || 0,
+                tackles: stats.tackles.total || 0,
+                blocks: stats.tackles.blocks || 0,
+                interceptions: stats.tackles.interceptions || 0,
+                dribblesAttempted: stats.dribbles.attempted || 0,
+                dribblesSuccess: stats.dribbles.success || 0,
+                dribblesPast: stats.dribbles.past || 0,
+                foulsDrawn: stats.fouls.drawn || 0,
+                foulsCommited: stats.fouls.commited || 0,
+                penaltyScored: stats.penalty.scored || 0,
+                penaltyCommited: stats.penalty.commited || 0,
+                penaltyMissed: stats.penalty.missed || 0,
+                penaltyWon: stats.penalty.won || 0,
+                penaltySaved: stats.penalty.saved || 0,
+                duelsWon: stats.duels.won || 0,
+                duelsTotal: stats.duels.total || 0,
+                yellow: !!stats.cards.yellow || 0,
+                red: !!stats.cards.red || 0,
+            })
+        });
     });
 
     const convertedToSingleTeam = converted[0].concat(converted[1]);
