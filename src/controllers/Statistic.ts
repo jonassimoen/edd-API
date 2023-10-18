@@ -1,5 +1,5 @@
-import { prisma } from "@db/client"
-import HttpError from "@utils/HttpError";
+import { prisma } from "@/db/client"
+import HttpError from "@/utils/HttpError";
 import axios from "axios";
 
 export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {

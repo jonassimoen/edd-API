@@ -1,4 +1,4 @@
-import { prisma } from "@db/client"
+import { prisma } from "@/db/client"
 
 export const GetMatchEventsHandler = async (req: any, rep: any) => {
     const events = await prisma.matchEvent.findMany({
