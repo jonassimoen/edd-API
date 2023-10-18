@@ -1,7 +1,10 @@
+[build]
+  functions = "lambda"
+  publish = "build"
+  command = "yarn build:fcts"
 [functions]
   external_node_modules = ["fastify"]
   node_bundler = "esbuild"
-  command = "yarn build"
 [[redirects]]
   force = true
   from = "/api/*"

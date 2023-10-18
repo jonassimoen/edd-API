@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src -e ts,tsx --exec ts-node src/index.ts",
     "build": "tsc -p tsconfig.json",
+    "build:fcts": "npm-run-all build:*",
     "start": "node dist/index.js",
     "lint": "eslint --ext js,jsx,ts,tsx,json ./src",
     "lint:fix": "eslint --ext js,jsx,ts,tsx,json ./src --fix"
@@ -14,15 +15,19 @@
     "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.2.1",
     "@fastify/static": "^6.10.2",
+    "@netlify/functions": "^2.3.0",
     "@prisma/client": "^4.14.1",
+    "@types/express": "^4.17.20",
     "axios": "^1.4.0",
     "dotenv": "^16.0.3",
+    "express": "^4.18.2",
     "fastify": "^4.17.0",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "prisma": "^4.14.1",
-    "qs": "^6.11.2"
+    "qs": "^6.11.2",
+    "serverless-http": "^3.2.0"
   },
   "devDependencies": {
     "@types/config": "^3.3.0",
