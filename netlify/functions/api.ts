@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import cookies from "@fastify/cookie"
 import cors from "@fastify/cors"
-import { deserializeUser } from "../../src/utils/DeserializeUser";
+import { deserializeUser } from "@/utils/DeserializeUser";
 import fastify from "fastify";
 import serverless from "serverless-http";
 import fastifyStatic from "@fastify/static";

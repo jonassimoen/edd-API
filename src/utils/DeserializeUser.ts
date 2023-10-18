@@ -1,4 +1,4 @@
-import { prisma } from "../db/client";
+import { prisma } from "@/db/client";
 import { signJwt, verifyJwt } from "@/utils/JWT";
 import { get } from "lodash";
 
