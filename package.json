@@ -9,7 +9,8 @@
     "build:fcts": "npm-run-all build:*",
     "start": "node dist/index.js",
     "lint": "eslint --ext js,jsx,ts,tsx,json ./src",
-    "lint:fix": "eslint --ext js,jsx,ts,tsx,json ./src --fix"
+    "lint:fix": "eslint --ext js,jsx,ts,tsx,json ./src --fix",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
