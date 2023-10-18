@@ -6,15 +6,24 @@
   },
   "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
+    "outDir": "dist",
     "target": "es2016",               
     "module": "commonjs",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "paths": {
-     "@/*": ["src/*"],
+     "@/*": ["*"],
+     "@assets/*": ["assets/*"],
+     "@controllers/*": ["controllers/*"],
+     "@db/*": ["db/*"],
+     "@middleware/*": ["middleware/*"],
+     "@routers/*": ["routers/*"],
+     "@services/*": ["services/*"],
+     "@typesd/*": ["types/*"],
+     "@utils/*": ["utils/*"],
     }
   }
 }

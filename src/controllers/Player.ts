@@ -1,5 +1,5 @@
-import { prisma } from "@/db/client"
-import { MapPositionNameToId, fetchPlayers } from "@/utils/ExternalAPI";
+import { prisma } from "@db/client"
+import { MapPositionNameToId, fetchPlayers } from "@utils/ExternalAPI";
 import * as fs from 'fs';
 import axios from "axios";
 import path from "path";

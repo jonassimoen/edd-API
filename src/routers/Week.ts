@@ -1,7 +1,7 @@
-import { PostMatchStartingHandler } from "@/controllers/MatchEvent";
-import { GetWeeksHandler, GetWeekHandler, PutWeekHandler, PostWeeksHandler, DeleteWeekHandler, GetDeadlineInfoHandler } from "@/controllers/Week";
-import { RequireUser } from "@/middleware/RequireUser";
-import { MatchStartingPostSchema, WeekPostSchema, WeekPutSchema } from "@/types/body-schema";
+import { PostMatchStartingHandler } from "@controllers/MatchEvent";
+import { GetWeeksHandler, GetWeekHandler, PutWeekHandler, PostWeeksHandler, DeleteWeekHandler, GetDeadlineInfoHandler } from "@controllers/Week";
+import { RequireUser } from "@middleware/RequireUser";
+import { MatchStartingPostSchema, WeekPostSchema, WeekPutSchema } from "@typesd/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicWeekRouter: FastifyPluginAsync = async server => {

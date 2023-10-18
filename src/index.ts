@@ -1,11 +1,11 @@
 import fastify from "fastify";
 import cookies from "@fastify/cookie"
 import cors from "@fastify/cors"
-import HttpError from "@/utils/HttpError";
-import { AdminRouter, PublicRouter } from "@/routers/Main";
+import { AdminRouter, PublicRouter } from "@routers/Main";
+import HttpError from "@utils/HttpError";
 
 import dotenv from "dotenv";
-import { deserializeUser } from "@/utils/DeserializeUser";
+import { deserializeUser } from "@utils/DeserializeUser";
 import fastifyStatic from "@fastify/static";
 import path from "path";
 dotenv.config();

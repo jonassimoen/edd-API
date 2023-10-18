@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client"
+import { prisma } from "@db/client"
 
 export const GetWeeksHandler = async (req: any, rep: any) => {
     const weeks = await prisma.week.findMany({

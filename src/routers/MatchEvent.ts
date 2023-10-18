@@ -1,6 +1,6 @@
-import { GetMatchEventsHandler, PutMatchEventHandler, PostMatchEventsHandler, DeleteMatchEventHandler, PostMatchStartingHandler } from "@/controllers/MatchEvent";
-import { RequireUser } from "@/middleware/RequireUser";
-import { MatchEventPutSchema, MatchEventPostSchema, MatchStartingPostSchema } from "@/types/body-schema";
+import { GetMatchEventsHandler, PutMatchEventHandler, PostMatchEventsHandler, DeleteMatchEventHandler, PostMatchStartingHandler } from "@controllers/MatchEvent";
+import { RequireUser } from "@middleware/RequireUser";
+import { MatchEventPutSchema, MatchEventPostSchema, MatchStartingPostSchema } from "@typesd/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicMatchEventRouter: FastifyPluginAsync = async server => {
