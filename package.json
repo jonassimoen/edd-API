@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon --watch src -e ts,tsx --exec ts-node src/index.ts",
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
-    "start": "node src/index.js",
+    "start": "node dist/index.js",
     "lint": "eslint --ext js,jsx,ts,tsx,json ./src",
     "lint:fix": "eslint --ext js,jsx,ts,tsx,json ./src --fix",
     "postinstall": "prisma generate"
