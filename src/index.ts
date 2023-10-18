@@ -42,7 +42,6 @@ server.get("/ping", (req: any, res: any) => {
 });
 
 server.setErrorHandler((err, req, rep) => {
-	console.log(err)
 	if (err instanceof HttpError) {
 		rep.status(err.statusCode || 500).send({
 			statusCode: err.statusCode || 500,
@@ -59,5 +58,4 @@ server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, addr
 		process.exit(1);
 	}
 	console.log(`Server listening at ${address}`);
-	console.log(`Webapp URL: ${process.env.WEBAPP_URL}`);
 });
