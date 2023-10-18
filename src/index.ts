@@ -59,4 +59,5 @@ server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, addr
 		process.exit(1);
 	}
 	console.log(`Server listening at ${address}`);
+	console.log(`Webapp URL: ${process.env.WEBAPP_URL}`);
 });
