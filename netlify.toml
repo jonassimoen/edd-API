@@ -2,9 +2,7 @@
   functions = "lambda"
   publish = "build"
   command = "yarn build"
-[functions]
-  external_node_modules = ["fastify"]
-  node_bundler = "esbuild"
+
 [[redirects]]
   force = true
   from = "/api/*"
