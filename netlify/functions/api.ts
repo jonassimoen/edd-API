@@ -7,7 +7,7 @@ import fastify from "fastify";
 import serverless from "serverless-http";
 import fastifyStatic from "@fastify/static";
 import path from "path";
-import { AdminRouter, PublicRouter } from "@/routers/Main";
+import { AdminRouter, PublicRouter } from "../../src/routers/Main";
 dotenv.config();
 
 export const api = fastify();
