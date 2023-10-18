@@ -21,7 +21,7 @@
      "@middleware/*": ["middleware/*"],
      "@routers/*": ["routers/*"],
      "@services/*": ["services/*"],
-     "@types/*": ["types/*"],
+     "@typesd/*": ["types/*"],
      "@utils/*": ["utils/*"],
     }
   }
