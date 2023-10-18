@@ -30,6 +30,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
                 email: googleUserInfo.email
             }
         })
+        console.log(`Webapp URL: ${process.env.WEBAPP_URL}`);
         if (!user) {
             const user = await prisma.user.create({
                 data: {
