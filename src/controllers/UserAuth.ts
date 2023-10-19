@@ -23,7 +23,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
     try {
         const { id_token, access_token } = await getGoogleOAuthTokens({ code });
         const googleUserInfo = await getGoogleUserInfo({ id_token, access_token });
-
+        console.log("google shit ok")
         // user has no account yet
         const user = await prisma.user.findUnique({
             where: {
@@ -31,6 +31,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
             }
         })
         if (!user) {
+            console.log("no user found")
             const user = await prisma.user.create({
                 data: {
                     email: googleUserInfo.email,
@@ -41,6 +42,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
             })
             rep.redirect(`${process.env.WEBAPP_URL}/welcome`,)
         } else {
+            console.log("user found")
             const accessToken = signJwt({ ...user }, { expiresIn: "15m" });
             const refreshToken = signJwt({ ...user }, { expiresIn: "30d" });
             rep.setCookie("token", accessToken, accessTokenCookieOptions);
@@ -48,7 +50,6 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
             console.log(req.headers.origin)
             console.log("accesstoken should be set")
             rep.redirect(`${process.env.WEBAPP_URL}/login/callback?${qs.stringify({token: accessToken, refreshToken: refreshToken})}`);
-            // rep.send("ok")
         }
 
 
