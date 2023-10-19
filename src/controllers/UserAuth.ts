@@ -46,6 +46,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
             rep.setCookie("token", accessToken, accessTokenCookieOptions);
             rep.setCookie("refreshToken", refreshToken, refreshTokenCookieOptions);
             console.log(req.headers.origin)
+            console.log("accesstoken should be set")
             rep.redirect(`${process.env.WEBAPP_URL}/login/callback?${qs.stringify({token: accessToken, refreshToken: refreshToken})}`);
             // rep.send("ok")
         }
