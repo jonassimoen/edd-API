@@ -7,7 +7,7 @@ const fetchPlayersPage = async (page: number = 1) => {
         method: 'get',
         url: 'https://v3.football.api-sports.io/players',
         headers: {
-            'x-rapidapi-key': 'a47085f2b2fcd66e93caad6b7d7f6b09',
+            'x-rapidapi-key': process.env.EXTERNAL_API_KEY,
             'x-rapidapi-host': 'v3.football.api-sports.io'
         },
         params: {
@@ -37,6 +37,7 @@ export const fetchPlayers = async (page: number = 1, allPlayers = []) => {
         allPlayers = allPlayers.concat(ps.response);
 
         if (ps.paging && ps.paging.current < ps.paging.total) {
+            console.log(`Fetched page ${page} from ${ps.paging.total}`)
             if (page % 10 === 0) {
                 await sleep(60000);
             }
@@ -48,6 +49,7 @@ export const fetchPlayers = async (page: number = 1, allPlayers = []) => {
         }
         return allPlayers;
     } catch (err: any) {
+        console.log(`Something went wrong: ${err}`)
         throw err;
     }
 
