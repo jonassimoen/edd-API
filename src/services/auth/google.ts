@@ -31,6 +31,7 @@ export const getGoogleOAuthTokens = async ({ code }: { code: string }): Promise<
         });
         return res.data;
     } catch (err: any) {
+        console.error(err.response)
         console.error(err.response.data.error);
         throw new HttpError(err.message, 401);
     }
