@@ -11,6 +11,12 @@ jobs:
     runs-on: self-hosted
     env:
       NODE_OPTIONS: --max_old_space_size=1536
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      EXTERNAL_API_KEY: ${{ secrets.EXTERNAL_API_KEY }}
+      OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.OAUTH_GOOGLE_CLIENT_ID }}
+      OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.OAUTH_GOOGLE_CLIENT_SECRET }}
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
     steps:      
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
