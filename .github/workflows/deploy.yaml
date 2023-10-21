@@ -27,6 +27,6 @@ jobs:
           script: |
             cd /var/www/html/fantasy-api.simoen.tech
             git pull origin master
-            yarn install --production
+            yarn install
             yarn build
             pm2 restart edd-API --update-env
