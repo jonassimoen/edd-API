@@ -7,8 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    runs-on: self-hosted
+  build-deploy:
+    runs-on: ubuntu-latest
     env:
       NODE_OPTIONS: --max_old_space_size=1536
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -17,14 +17,18 @@ jobs:
       OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.OAUTH_GOOGLE_CLIENT_SECRET }}
       PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+      
     steps:      
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: SSH and deploy node app
+        uses: appleboy/ssh-action@master
         with:
-          node-version: 16
-      - run: npm install yarn -g
-      - name: Build Api
-        run: | 
-          yarn install
-          yarn build
-      - run: pm2 restart dist/index.js --update-env
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd /var/www/html/fantasy-api.simoen.tech
+            git pull origin master
+            yarn install --production
+            yarn build
+            pm2 restart edd-API --update-env
