@@ -90,8 +90,6 @@ export const ImportMatchesHandler = async (req: any, rep: any) => {
         id: club.id,
         external: club.externalId,
     }));
-    
-    console.log(clubs);
 
     const respToData = res.data.response.map((externalClub: any) =>( {
         externalId: externalClub.fixture.id,

@@ -50,7 +50,7 @@ export const ImportPlayersHandler = async (req: any, rep: any) => {
     // should import images too: https://media.api-sports.io/football/teams/{team_id}.png
     
     // const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../assets/players.json'), 'utf-8')); # dev purposes only
-    const data = await fetchPlayers();
+    const data = await fetchPlayers(req);
 
     const clubs = (await prisma.club.findMany()).map((club: any) => ({
         id: club.id,

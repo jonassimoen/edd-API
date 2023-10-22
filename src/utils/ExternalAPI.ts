@@ -16,8 +16,6 @@ const fetchPlayersPage = async (page: number = 1) => {
             'page': page,
         }
     });
-
-    console.log(Object.keys(res.data.errors));
     if (res.status != 200 || !res.data || (Array.isArray(res.data.errors) && (res.data.errors.length > 0)) || Object.keys(res.data.errors).length !== 0) {
         throw new HttpError(Object.values(res.data.errors).reduce((s, v) => `${s}${v} `, '') as string, 429)
     }
@@ -27,7 +25,7 @@ const fetchPlayersPage = async (page: number = 1) => {
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-export const fetchPlayers = async (page: number = 1, allPlayers = []) => {
+export const fetchPlayers = async (req: any, page: number = 1, allPlayers = []) => {
     // let ps = await fetchPlayersPage(page);
     // allPlayers = allPlayers.concat(ps.response);
     // console.log(allPlayers);
@@ -37,19 +35,19 @@ export const fetchPlayers = async (page: number = 1, allPlayers = []) => {
         allPlayers = allPlayers.concat(ps.response);
 
         if (ps.paging && ps.paging.current < ps.paging.total) {
-            console.log(`Fetched page ${page} from ${ps.paging.total}`)
+            req.log.info(`Fetched page ${page} from ${ps.paging.total}`)
             if (page % 10 === 0) {
                 await sleep(60000);
             }
 
             page = ps.paging.current + 1;
-            allPlayers = await fetchPlayers(page, allPlayers)
+            allPlayers = await fetchPlayers(req, page, allPlayers)
         } else {
-            console.log("fetched fully");
+            req.log.info(`Fully fetched all players.`)
         }
         return allPlayers;
     } catch (err: any) {
-        console.log(`Something went wrong: ${err}`)
+        req.error.log(`Something went wrong: ${err}`)
         throw err;
     }
 
