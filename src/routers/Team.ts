@@ -1,6 +1,6 @@
 import { PostAddTeamHandler, PostCopyTeamHandler, DeleteDropTeamHandler, GetTeamHandler, GetPointsTeamHandler, PostBoosterTeamHandler, PostEditTeamHandler, PostSelectionsTeamHandler, PostTransfersTeamHandler, PostResetTransfersTeamHandler, PostBadgeHandler } from "@controllers/Team";
 import { RequireUser } from "@middleware/RequireUser";
-import { AddTeamSchema } from "@typesd/body-schema";
+import { AddTeamSchema, TransfersTeamSchema } from "@typesd/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const TeamRouter: FastifyPluginAsync = async server => {
@@ -67,7 +67,10 @@ export const TeamRouter: FastifyPluginAsync = async server => {
         method: 'POST',
         url: '/:id/transfers',
         preHandler: RequireUser,
-        handler: PostTransfersTeamHandler
+        handler: PostTransfersTeamHandler,
+        schema: {
+            body: TransfersTeamSchema
+        }
     });
 
     server.route({

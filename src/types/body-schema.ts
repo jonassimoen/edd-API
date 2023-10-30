@@ -20,6 +20,24 @@ export const AddTeamSchema = {
     }
 }
 
+export const TransfersTeamSchema = {
+    body: {
+        type: 'object',
+        properties: {
+            transfers: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        inId: { type: 'number' },
+                        outId: { type: 'number' }
+                    }
+                }
+            }
+        }
+    }
+}
+
 export const ClubPostSchema = {
     type: 'object',
     properties: {

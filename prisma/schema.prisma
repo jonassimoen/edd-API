@@ -48,11 +48,11 @@ model Player {
   clubId      Int?
   externalId  Int?
   // fieldOrder: usage ??
-  forename    String
+  forename    String?
   form        Int?
   // info: usage?
   injury      Int?
-  name        String
+  name        String?
   portraitUrl String?
   positionId  Int?
   setPieces   Int?
@@ -60,13 +60,15 @@ model Player {
   // squadStatus, squadDepth: usage?
   points      Int     @default(0)
   star        Int?
-  surname     String
+  surname     String?
   value       Float?
 
   selections Selection[]
   club       Club?        @relation(fields: [clubId], references: [id], onDelete: Cascade)
   MatchEvent MatchEvent[]
   stats      Statistic[]
+  inPlayer   Transfer[]   @relation("inPlayer")
+  outPlayer  Transfer[]   @relation("outPlayer")
 }
 
 model Statistic {
@@ -112,16 +114,19 @@ model Team {
 
   selections Selection[]
 
-  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  week Week? @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  week     Week?      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  Transfer Transfer[]
 }
 
 model Week {
-  id           Int      @id @default(autoincrement())
-  deadlineDate DateTime @db.Timestamptz()
+  id           Int         @id @default(autoincrement())
+  deadlineDate DateTime    @db.Timestamptz()
   Team         Team[]
   Match        Match[]
-  validated    Boolean  @default(false)
+  validated    Boolean     @default(false)
+  Selection    Selection[]
+  Transfer     Transfer[]
 }
 
 model Selection {
@@ -133,10 +138,12 @@ model Selection {
   points   Int    @default(0)
   value    Int
   starting Int    @default(0)
+  weekId   Int
+  week     Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
   player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  @@unique([playerId, teamId])
+  @@unique([playerId, teamId, weekId])
 }
 
 model Match {
@@ -168,6 +175,21 @@ model MatchEvent {
 
   match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
   player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+}
+
+model Transfer {
+  id Int @id @default(autoincrement())
+
+  datetime DateTime
+  extra    Int?
+  inId     Int
+  outId    Int
+  teamId   Int
+  weekId   Int
+  in       Player   @relation(name: "inPlayer", fields: [inId], references: [id])
+  out      Player   @relation(name: "outPlayer", fields: [outId], references: [id])
+  team     Team     @relation(fields: [teamId], references: [id])
+  week     Week     @relation(fields: [weekId], references: [id])
 }
 
 // model WeeksOnTeams {
