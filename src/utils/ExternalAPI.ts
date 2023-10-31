@@ -47,7 +47,7 @@ export const fetchPlayers = async (req: any, page: number = 1, allPlayers = []) 
         }
         return allPlayers;
     } catch (err: any) {
-        req.error.log(`Something went wrong: ${err}`)
+        req.log.info(`Something went wrong: ${err}`)
         throw err;
     }
 
