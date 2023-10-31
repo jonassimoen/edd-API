@@ -15,6 +15,7 @@ export const server = fastify({
 		level: 'info',
 		file: '/var/log/fantasy-api/info.log'
 	},
+    disableRequestLogging: true,
 })
 
 server.addHook("preHandler", deserializeUser);
