@@ -59,17 +59,34 @@ export const GetMatchStatisticsHandler = async (req: any, rep: any) => {
 }
 
 export const PutMatchStatisticHandler = async (req: any, rep: any) => {
-    const [count, stats] = await prisma.$transaction([
-        prisma.statistic.deleteMany({
-            where: {
-                matchId: +req.params.matchId
-            }
-        }),
-        prisma.statistic.createMany({
-            data: req.body
-        })
-    ])
-    rep.send(stats);
+    try {
+        const [count, stats] = await prisma.$transaction([
+            // TODO: replace with upsert 
+            prisma.statistic.deleteMany({
+                where: {
+                    matchId: +req.params.matchId
+                }
+            }),
+            prisma.statistic.createMany({
+                data: req.body.stats.map((stat: any) => ({
+                    ...stat,
+                    matchId: +req.params.matchId,
+                }))
+            }),
+            prisma.match.update({
+                where: {
+                    id: +req.params.matchId
+                },
+                data: {
+                    homeScore: +req.body.score.home,
+                    awayScore: +req.body.score.away,
+                }
+            })
+        ]);
+        rep.send({ count, stats });
+    } catch (e: any) {
+        console.error(e);
+    }
 }
 
 export const PostMatchStatisticsHandler = async (req: any, rep: any) => {
@@ -107,31 +124,32 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 
             return ({
                 playerId: player.player.id,
-                minutesPlayed: stats.games.minutes || 0,
-                shots: stats.shots.total || 0,
-                shotsOnTarget: stats.shots.on || 0,
-                goals: stats.goals.total || 0,
-                assists: stats.goals.assists || 0,
-                saves: stats.goals.saves || 0,
-                keyPasses: stats.passes.key || 0,
-                passAccuracy: stats.passes.accuracy || 0,
-                tackles: stats.tackles.total || 0,
-                blocks: stats.tackles.blocks || 0,
-                interceptions: stats.tackles.interceptions || 0,
-                dribblesAttempted: stats.dribbles.attempted || 0,
-                dribblesSuccess: stats.dribbles.success || 0,
-                dribblesPast: stats.dribbles.past || 0,
-                foulsDrawn: stats.fouls.drawn || 0,
-                foulsCommited: stats.fouls.commited || 0,
-                penaltyScored: stats.penalty.scored || 0,
-                penaltyCommited: stats.penalty.commited || 0,
-                penaltyMissed: stats.penalty.missed || 0,
-                penaltyWon: stats.penalty.won || 0,
-                penaltySaved: stats.penalty.saved || 0,
-                duelsWon: stats.duels.won || 0,
-                duelsTotal: stats.duels.total || 0,
-                yellow: !!stats.cards.yellow || 0,
-                red: !!stats.cards.red || 0,
+                minutesPlayed: +stats.games.minutes || 0,
+                shots: +stats.shots.total || 0,
+                shotsOnTarget: +stats.shots.on || 0,
+                goals: +stats.goals.total || 0,
+                assists: +stats.goals.assists || 0,
+                saves: +stats.goals.saves || 0,
+                keyPasses: +stats.passes.key || 0,
+                passAccuracy: +stats.passes.accuracy || 0,
+                tackles: +stats.tackles.total || 0,
+                blocks: +stats.tackles.blocks || 0,
+                interceptions: +stats.tackles.interceptions || 0,
+                dribblesAttempted: +stats.dribbles.attempted || 0,
+                dribblesSuccess: +stats.dribbles.success || 0,
+                dribblesPast: +stats.dribbles.past || 0,
+                foulsDrawn: +stats.fouls.drawn || 0,
+                foulsCommited: +stats.fouls.commited || 0,
+                penaltyScored: +stats.penalty.scored || 0,
+                penaltyCommited: +stats.penalty.commited || 0,
+                penaltyMissed: +stats.penalty.missed || 0,
+                penaltyWon: +stats.penalty.won || 0,
+                penaltySaved: +stats.penalty.saved || 0,
+                duelsWon: +stats.duels.won || 0,
+                duelsTotal: +stats.duels.total || 0,
+                yellow: !!stats.cards.yellow || false,
+                red: !!stats.cards.red || false,
+                motm: false,
             })
         });
     });

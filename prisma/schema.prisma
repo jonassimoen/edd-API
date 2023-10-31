@@ -80,8 +80,33 @@ model Statistic {
   teamPoints Int @default(0)
   points     Int @default(0)
 
-  goals   Int @default(0)
-  assists Int @default(0)
+  minutesPlayed     Int @default(0)
+  goals             Int @default(0)
+  assists           Int @default(0)
+  shots             Int @default(0)
+  shotsOnTarget     Int @default(0)
+  saves             Int @default(0)
+  keyPasses         Int @default(0)
+  passAccuracy      Int @default(0)
+  tackles           Int @default(0)
+  blocks            Int @default(0)
+  interceptions     Int @default(0)
+  dribblesAttempted Int @default(0)
+  dribblesSuccess   Int @default(0)
+  dribblesPast      Int @default(0)
+  foulsDrawn        Int @default(0)
+  foulsCommited     Int @default(0)
+  penaltySaved      Int @default(0)
+  penaltyCommited   Int @default(0)
+  penaltyWon        Int @default(0)
+  penaltyScored     Int @default(0)
+  penaltyMissed     Int @default(0)
+  duelsWon          Int @default(0)
+  duelsTotal        Int @default(0)
+
+  red    Boolean @default(false)
+  yellow Boolean @default(false)
+  motm   Boolean @default(false)
 
   match  Match  @relation(fields: [matchId], references: [id])
   player Player @relation(fields: [playerId], references: [id])
@@ -148,7 +173,7 @@ model Selection {
 
 model Match {
   id         Int      @id @default(autoincrement())
-  externalId Int      @unique
+  externalId Int?     @unique
   weekId     Int?
   // roundId Int
   date       DateTime @db.Timestamptz()

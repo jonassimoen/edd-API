@@ -83,7 +83,7 @@ export const MatchPostSchema = {
     properties: {
         homeId: { type: 'number' },
         awayId: { type: 'number' },
-        // weekId: { type: 'number' },
+        weekId: { type: 'number' },
         date: { type: 'string' },
     }
 };
@@ -131,16 +131,50 @@ export const MatchStartingPostSchema = {
 
 
 export const MatchStatisticPutSchema = {
-    type: 'array',
-    items: {
-        type: 'object',
-        properties: {
-            matchId: { type: 'number' },
-            playerId: { type: 'number' },
-            teamPoints: { type: 'number' },
-            points: { type: 'number' },
-            goals: { type: 'number' },
-            assists: { type: 'number' },
+    type: "object",
+    properties: {
+        stats: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    playerId: { type: 'number' },
+                    minutesPlayed: { type: 'number' },
+                    goals: { type: 'number' },
+                    assists: { type: 'number' },
+                    shots: { type: 'number' },
+                    shotsOnTarget: { type: 'number' },
+                    saves: { type: 'number' },
+                    keyPasses: { type: 'number' },
+                    passAccuracy: { type: 'number' },
+                    tackles: { type: 'number' },
+                    blocks: { type: 'number' },
+                    interceptions: { type: 'number' },
+                    dribblesAttempted: { type: 'number' },
+                    dribblesSuccess: { type: 'number' },
+                    dribblesPast: { type: 'number' },
+                    foulsDrawn: { type: 'number' },
+                    foulsCommited: { type: 'number' },
+                    penaltySaved: { type: 'number' },
+                    penaltyCommited: { type: 'number' },
+                    penaltyWon: { type: 'number' },
+                    penaltyScored: { type: 'number' },
+                    penaltyMissed: { type: 'number' },
+                    duelsWon: { type: 'number' },
+                    duelsTotal: { type: 'number' },
+                    red: { type: 'boolean' },
+                    yellow: { type: 'boolean' },
+                    motm: { type: 'boolean' },
+                }
+            }
+        },
+        matchId: { type: 'number' },
+        score: {
+            type: 'object',
+            properties: {
+                home: { type: 'number' },
+                away: { type: 'number' }
+            }
         }
     }
 };
