@@ -11,7 +11,10 @@ import path from "path";
 dotenv.config();
 
 export const server = fastify({
-
+	logger: {
+		level: 'info',
+		file: '/var/log/fantasy-api/info.log'
+	},
 })
 
 server.addHook("preHandler", deserializeUser);
@@ -25,7 +28,6 @@ server.register(cors, {
 server.register(cookies, {
 	hook: "onRequest",
 });
-console.log(path.join(__dirname, '../static'))
 
 server.register(fastifyStatic, {
 	root: path.join(__dirname, '../static'),
