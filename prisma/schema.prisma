@@ -171,6 +171,14 @@ model Selection {
   @@unique([playerId, teamId, weekId])
 }
 
+enum ProcessState {
+  CREATED
+  PLAYED
+  STATS_IMPORTED
+  STATS_UPDATED
+  VALIDATED
+}
+
 model Match {
   id         Int      @id @default(autoincrement())
   externalId Int?     @unique
@@ -182,6 +190,8 @@ model Match {
   awayScore  Int?     @default(0)
   homeId     Int
   awayId     Int
+
+  status ProcessState @default(CREATED)
 
   home Club @relation(name: "homeMatch", fields: [homeId], references: [id])
   away Club @relation(name: "awayMatch", fields: [awayId], references: [id])

@@ -1,4 +1,5 @@
 import { prisma } from "@db/client"
+import { ProcessState } from "@prisma/client";
 import HttpError from "@utils/HttpError";
 import axios from "axios";
 
@@ -60,7 +61,7 @@ export const GetMatchStatisticsHandler = async (req: any, rep: any) => {
 
 export const PutMatchStatisticHandler = async (req: any, rep: any) => {
     try {
-        const [count, stats] = await prisma.$transaction([
+        const [count, stats, match] = await prisma.$transaction([
             // TODO: replace with upsert 
             prisma.statistic.deleteMany({
                 where: {
@@ -80,10 +81,11 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
                 data: {
                     homeScore: +req.body.score.home,
                     awayScore: +req.body.score.away,
+                    status: ProcessState.STATS_UPDATED,
                 }
-            })
+            }),
         ]);
-        rep.send({ count, stats });
+        rep.send({ msg: `${count} statistics imported for Match with id ${match.id}` });
     } catch (e: any) {
         console.error(e);
     }
@@ -155,6 +157,15 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
     });
 
     const convertedToSingleTeam = converted[0].concat(converted[1]);
+
+    const matchUpdate = await prisma.match.update({
+        where: {
+            id: +req.params.matchId,
+        },
+        data: {
+            status: ProcessState.STATS_IMPORTED,
+        }
+    });
 
     rep.send(convertedToSingleTeam);
 }
