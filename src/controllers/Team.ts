@@ -29,7 +29,7 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 				return {
 						playerId: id,
 						value: (player ? player.value : 0),
-						captain: (id === req.body.captain) ? 1 : 0,
+						captain: (id === req.body.captainId) ? 1 : (id === req.body.viceCaptainId ? 2 : 0) ,
 						starting: player ? (req.body.starting.includes(player?.id) ? 1 : 0) : 0,
 						weekId,
 				}
