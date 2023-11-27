@@ -1,7 +1,6 @@
-import { PostMatchStartingHandler } from "@controllers/MatchEvent";
-import { GetWeeksHandler, GetWeekHandler, PutWeekHandler, PostWeeksHandler, DeleteWeekHandler, GetDeadlineInfoHandler } from "@controllers/Week";
+import { GetWeeksHandler, GetWeekHandler, PutWeekHandler, PostWeeksHandler, DeleteWeekHandler, GetDeadlineInfoHandler, PostWeekValidateHandler } from "@controllers/Week";
 import { RequireUser } from "@middleware/RequireUser";
-import { MatchStartingPostSchema, WeekPostSchema, WeekPutSchema } from "@typesd/body-schema";
+import { WeekPostSchema, WeekPutSchema } from "@typesd/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicWeekRouter: FastifyPluginAsync = async server => {
@@ -44,6 +43,13 @@ export const AdminWeekRouter: FastifyPluginAsync = async server => {
         schema: {
             body: WeekPostSchema
         }
+    });
+
+    server.route({
+        method: 'POST',
+        url: '/:id/validate',
+        preHandler: RequireUser,
+        handler: PostWeekValidateHandler,
     });
 
     server.route({

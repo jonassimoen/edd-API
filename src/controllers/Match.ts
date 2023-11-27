@@ -22,14 +22,30 @@ export const GetMatchHandler = async (req: any, rep: any) => {
         },
         select: {
             id: true,
-            home: true,
-            away: true,
+            home: {
+                include: {
+                    players: {
+                        include: {
+                            stats: true
+                        }
+                    }
+                }
+            },
+            away: {
+                include: {
+                    players: {
+                        include: {
+                            stats: true
+                        }
+                    }
+                }
+            },
             weekId: true,
             date: true,
             postponed: true,
             homeScore: true,
             awayScore: true,
-        }
+        },
     });
     rep.send(match);
 }

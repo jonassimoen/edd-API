@@ -139,6 +139,7 @@ export const MatchStatisticPutSchema = {
                 type: 'object',
                 properties: {
                     playerId: { type: 'number' },
+                    starting: { type: 'boolean' },
                     minutesPlayed: { type: 'number' },
                     goals: { type: 'number' },
                     assists: { type: 'number' },
@@ -146,7 +147,8 @@ export const MatchStatisticPutSchema = {
                     shotsOnTarget: { type: 'number' },
                     saves: { type: 'number' },
                     keyPasses: { type: 'number' },
-                    passAccuracy: { type: 'number' },
+                    totalPasses: { type: 'number' },
+                    accuratePasses: { type: 'number' },
                     tackles: { type: 'number' },
                     blocks: { type: 'number' },
                     interceptions: { type: 'number' },

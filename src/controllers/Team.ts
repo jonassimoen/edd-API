@@ -1,6 +1,7 @@
-import { upcomingWeekId } from "@/utils/Common";
+import { finalWeekId, upcomingWeekId } from '@/utils/Common';
 import { prisma } from "@db/client"
 import HttpError from "@utils/HttpError";
+import { max } from "lodash";
 
 export const PostAddTeamHandler = async (req: any, rep: any) => {
 
@@ -21,6 +22,7 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
     });
 
     const weekId = await upcomingWeekId();
+    const lastWeekId = await finalWeekId();
 
     const allWithValues = allIds.map((id: number) => {
         const player = all.find((p) => p.id === id);
@@ -40,12 +42,14 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
         throw new HttpError(`Invalid team: invalid budget (${budget})`, 400);
     }
 
+    const allWithValuesForAllRemainingWeeks = allWithValues.flatMap((p: any) => Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId).map( wId => ({...p, weekId: wId}) ));    
+
     const team = await prisma.team.create({
         data: {
             userId: req.user.id,
             selections: {
                 createMany: {
-                    data: allWithValues
+                    data: allWithValuesForAllRemainingWeeks,
                 }
             },
             budget: budget,
@@ -83,13 +87,24 @@ export const GetTeamHandler = async (req: any, rep: any) => {
         where: {
             selections: {
                 some: {
-                    teamId: +req.params.id
+                    teamId: +req.params.id,
+                    weekId,
                 }
             }
         },
         include: {
             selections: {
-                take: 1
+                where: {
+                    teamId: +req.params.id,
+                    weekId,
+                },
+                select: {
+                    captain: true,
+                    starting: true,
+                    value: true,
+                    playerId: true,
+                    weekId: true,
+                }
             }
         }
     });
@@ -100,6 +115,9 @@ export const GetTeamHandler = async (req: any, rep: any) => {
     const team = await prisma.team.findFirst({
         where: {
             id: +req.params.id
+        },
+        include: {
+            user: true
         }
     });
 
@@ -115,21 +133,64 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 export const GetPointsTeamHandler = async (req: any, rep: any) => {
     const players = await prisma.player.findMany({
         include: {
-            selections: true,
+            selections: {
+                where: {
+                    teamId: +req.params.id,
+                    weekId: +req.params.weekId,
+                }
+            },
+            stats: {
+                where: {
+                    match: {
+                        weekId: +req.params.weekId,
+                    }
+                }
+            }
         },
         where: {
             selections: {
                 some: {
                     teamId: +req.params.id,
-                    team: {
-                        // weekId: +req.params.weekId,
-                    }
+                    weekId: +req.params.weekId,
                 }
             }
         }
-
     });
-    rep.send(players);
+    const team = await prisma.team.findUnique({
+        where: {
+            id: +req.params.id,
+        }
+    });
+    const deadlineWeek = await prisma.week.findFirst({
+        where: {
+            id: +req.params.weekId
+        }
+    });
+    const transfers = await prisma.transfer.findMany({
+        where: {
+            teamId: +req.params.id,
+            weekId: +req.params.weekId,
+        }
+    });
+    rep.send({
+        players,
+        team,
+        user: req.user,
+        transfers: transfers,
+        weeks: {
+            deadlineDate: deadlineWeek?.deadlineDate,
+            deadlineWeek: deadlineWeek?.id,
+            displayWeek: max([(deadlineWeek?.id || 0) - 1, 0]),
+        },
+        // todo: replace weekstat
+        weekStat: [{
+            points: players.filter((p: any) => p.selections[0].starting === 1).reduce((acc: number, p: any) => acc + (p.stats[0]?.points || 0), 0),
+            rank: 1564,
+            teamId: +req.params.id,
+            value: 69,
+            weekId: +req.params.weekId
+        }],
+    });
 }
 
 export const PostBoosterTeamHandler = async (req: any, rep: any) => {
@@ -144,6 +205,7 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 }
 
 export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
+    const weekId = await upcomingWeekId();
     try {
         await prisma.$transaction(
             [].concat(
@@ -153,7 +215,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
                             playerId_teamId_weekId: {
                                 playerId: startingPlayerId,
                                 teamId: +req.params.id,
-                                weekId: req.body.weekId
+                                weekId,
                             }
                         },
                         data: {
@@ -167,7 +229,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
                             playerId_teamId_weekId: {
                                 playerId: benchPlayerId,
                                 teamId: +req.params.id,
-                                weekId: req.body.weekId
+                                weekId,
                             }
                         },
                         data: {
@@ -179,7 +241,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
         );
         rep.send({ msg: "Ploeg is aangepast." });
     } catch (e) {
-        rep.status(406);
+        rep.status(406).send(e);
     }
 }
 
@@ -201,6 +263,7 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
         });
         updateTeamSelection(+req.params.id, weekId, transfers);
         rep.send({ msg: `${transfersRecord.count} player${transfersRecord.count > 1 ? 's' : ''} transferred` });
+        // rep.send();
     } else {
 
     }
@@ -248,30 +311,52 @@ const updateTeamSelection = async (teamId: number, weekId: number, transfers: an
                     })
                 )
         );
-        // console.log( currentSelection
-        //     .filter((selection: any) => outIds.indexOf(selection.playerId) != -1)
-        //     .map((selection: any) =>
-        //         ({
-        //             "selection.playerId": selection.playerId,
-        //             "newPlayer.playerId": transfers.find((transfer: any) => transfer.outId === selection.playerId).inId,
-        //             where: {
-        //                 playerId_teamId_weekId: {
-        //                     teamId,
-        //                     weekId,
-        //                     playerId: selection.playerId,
-        //                 }
-        //             },
-        //             data: {
-        //                 player: {
-        //                     connect: {
-        //                         id: transfers.find((transfer: any) => transfer.outId === selection.playerId).inId
-        //                     }
-        //                 }
-        //             }
-        //         })
-        //     ))
 
     } else {
+        const newWeekId = weekId;
         // This team has no player selections for this week. Copy them from last week.
+        const lastWeekSelection = await prisma.selection.findMany({
+            where: {
+                teamId,
+                weekId: weekId - 1,
+            }
+        });
+        const inputData = lastWeekSelection
+            .filter((selection: any) => outIds.indexOf(selection.playerId) === -1)
+            .concat(
+                lastWeekSelection.filter((selection: any) => outIds.indexOf(selection.playerId) !== -1).map(
+                    (transferredOutPlayer) => ({
+                        ...transferredOutPlayer,
+                        playerId: transfers.find((tf: any) => tf.outId === transferredOutPlayer.playerId).inId,
+                    })
+                )
+            )
+            .map((selection: any) => {
+                const { id, weekId, ...data } = selection;
+                return { weekId: newWeekId, ...data };
+            });
+        console.log(weekId);
+        await prisma.selection.createMany({
+            data: inputData,
+        })
+        // .map((selection: any) =>
+        //     ({
+        //         "selection.playerId": selection.playerId,
+        //         "newPlayer.playerId": transfers.find((transfer: any) => transfer.outId === selection.playerId).inId,
+        //         where: {
+        //             playerId_teamId_weekId: {
+        //                 teamId,
+        //                 weekId,
+        //                 playerId: selection.playerId,
+        //             }
+        //         },
+        //         data: {
+        //             player: {
+        //                 connect: {
+        //                     id: transfers.find((transfer: any) => transfer.outId === selection.playerId).inId
+        //                 }
+        //             }
+        //         }
+        //     })
     }
 }

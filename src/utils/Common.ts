@@ -13,3 +13,14 @@ export const upcomingWeekId = async () => {
     });
     return (week && week.id) || 0;
 }
+
+export const finalWeekId = async () => {
+    const week = await prisma.week.findFirst({
+        orderBy: {
+            deadlineDate: 'desc'
+        },
+        take: 1
+    });
+
+    return (week && week.id) || 0;
+}

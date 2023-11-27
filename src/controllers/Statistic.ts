@@ -1,3 +1,4 @@
+import { calculatePoints } from "@/utils/PointsCalculator";
 import { prisma } from "@db/client"
 import { ProcessState } from "@prisma/client";
 import HttpError from "@utils/HttpError";
@@ -25,12 +26,14 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
             statGoals: sum.statGoals + current.goals,
             statReds: sum.statReds + current.reds,
             statYellows: sum.statYellows + current.yellows,
+            total: sum.total + current.points,
         }),
             {
                 statAssists: 0,
                 statGoals: 0,
                 statReds: 0,
                 statYellows: 0,
+                total: 0,
             }
         );
         return {
@@ -46,7 +49,7 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
             positionId: player.positionId,
             ...sumStats
         };
-    });
+    }).sort((a: any, b: any) => b.total - a.total);
     rep.send(allStatsPlayers);
 }
 
@@ -61,8 +64,24 @@ export const GetMatchStatisticsHandler = async (req: any, rep: any) => {
 
 export const PutMatchStatisticHandler = async (req: any, rep: any) => {
     try {
-        const [count, stats, match] = await prisma.$transaction([
-            // TODO: replace with upsert 
+        const match = await prisma.match.findUnique({
+            where: {
+                id: +req.params.matchId,
+            }
+        });
+
+        const playersWithPositionIds = await prisma.player.findMany({
+            select: {
+                id: true,
+                positionId: true,
+            },
+            where: {
+                clubId: {
+                    in: [match!.awayId, match!.homeId]
+                }
+            }
+        });
+        await prisma.$transaction([
             prisma.statistic.deleteMany({
                 where: {
                     matchId: +req.params.matchId
@@ -72,6 +91,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
                 data: req.body.stats.map((stat: any) => ({
                     ...stat,
                     matchId: +req.params.matchId,
+                    points: calculatePoints(stat, playersWithPositionIds.find((player:any) => player.id === stat.playerId)?.positionId!)
                 }))
             }),
             prisma.match.update({
@@ -85,7 +105,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
                 }
             }),
         ]);
-        rep.send({ msg: `${count} statistics imported for Match with id ${match.id}` });
+
+        rep.send({ msg: `Statistics saved for Match with id ${match?.id}` });
     } catch (e: any) {
         console.error(e);
     }
@@ -127,13 +148,15 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
             return ({
                 playerId: player.player.id,
                 minutesPlayed: +stats.games.minutes || 0,
+                starting: !(!!stats.games.substitute),
                 shots: +stats.shots.total || 0,
                 shotsOnTarget: +stats.shots.on || 0,
                 goals: +stats.goals.total || 0,
                 assists: +stats.goals.assists || 0,
                 saves: +stats.goals.saves || 0,
                 keyPasses: +stats.passes.key || 0,
-                passAccuracy: +stats.passes.accuracy || 0,
+                totalPasses: +stats.passes.total || 0,
+                accuratePasses: +stats.passes.accuracy || 0,
                 tackles: +stats.tackles.total || 0,
                 blocks: +stats.tackles.blocks || 0,
                 interceptions: +stats.tackles.interceptions || 0,

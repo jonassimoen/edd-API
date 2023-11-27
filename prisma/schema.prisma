@@ -87,7 +87,8 @@ model Statistic {
   shotsOnTarget     Int @default(0)
   saves             Int @default(0)
   keyPasses         Int @default(0)
-  passAccuracy      Int @default(0)
+  accuratePasses    Int @default(0)
+  totalPasses       Int @default(0)
   tackles           Int @default(0)
   blocks            Int @default(0)
   interceptions     Int @default(0)
@@ -104,9 +105,10 @@ model Statistic {
   duelsWon          Int @default(0)
   duelsTotal        Int @default(0)
 
-  red    Boolean @default(false)
-  yellow Boolean @default(false)
-  motm   Boolean @default(false)
+  red      Boolean @default(false)
+  yellow   Boolean @default(false)
+  motm     Boolean @default(false)
+  starting Boolean @default(false)
 
   match  Match  @relation(fields: [matchId], references: [id])
   player Player @relation(fields: [playerId], references: [id])
@@ -160,7 +162,6 @@ model Selection {
   played   Int    @default(0)
   teamId   Int
   playerId Int
-  points   Int    @default(0)
   value    Int
   starting Int    @default(0)
   weekId   Int
