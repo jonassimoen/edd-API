@@ -228,6 +228,21 @@ model Transfer {
   week     Week     @relation(fields: [weekId], references: [id])
 }
 
+model Page {
+  id          Int           @id @default(autoincrement())
+  slug        String
+  translation Translation[]
+}
+
+model Translation {
+  id       Int     @id @default(autoincrement())
+  langCode String
+  body     String
+  title    String?
+  pageId   Int
+  page     Page    @relation(fields: [pageId], references: [id])
+}
+
 // model WeeksOnTeams {
 //   week   Week @relation(fields: [weekId], references: [id])
 //   team   Team @relation(fields: [teamId], references: [id])
