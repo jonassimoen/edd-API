@@ -208,3 +208,38 @@ export const WeekPutSchema = {
 		deadlineDate: { type: 'string' },
 	}
 };
+
+export const PostPageSchema = {
+	type: 'object',
+	properties: {
+		slug: { type: 'string' },
+		translation: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					langCode: { type: 'string' },
+					body: { type: 'string' },
+				}
+			}
+		}
+	}
+}
+
+export const PutPageSchema = {
+	type: 'object',
+	properties: {
+		id: { type: 'number' },
+		slug: { type: 'string' },
+		translation: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					langCode: { type: 'string' },
+					body: { type: 'string' },
+				}
+			}
+		}
+	}
+}

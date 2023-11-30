@@ -1,5 +1,6 @@
-import { DeletePageHandler, DeletePageTranslationHandler, GetPageHandler, GetPageTranslationHandler, PostPageHandler, PostPageTranslationHandler, PutPageHandler, PutPageTranslationHandler } from "@/controllers/Page";
+import { DeletePageHandler, GetPageHandler, PostPageHandler, PutPageHandler } from "@/controllers/Page";
 import { RequireUser } from "@/middleware/RequireUser";
+import { PostPageSchema, PutPageSchema } from "@/types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicPageRouter: FastifyPluginAsync = async server => {
@@ -20,6 +21,9 @@ export const PublicPageRouter: FastifyPluginAsync = async server => {
 		url: '',
 		preHandler: RequireUser,
 		handler: PostPageHandler,
+		schema: {
+			body: PostPageSchema
+		}
 	});
 
 	server.route({
@@ -27,6 +31,9 @@ export const PublicPageRouter: FastifyPluginAsync = async server => {
 		url: '/:id',
 		preHandler: RequireUser,
 		handler: PutPageHandler,
+		schema: {
+			body: PutPageSchema
+		}
 	});
 
 	server.route({
@@ -34,33 +41,5 @@ export const PublicPageRouter: FastifyPluginAsync = async server => {
 		url: '/:id',
 		preHandler: RequireUser,
 		handler: DeletePageHandler,
-	});
-
-	server.route({
-		method: 'GET',
-		url: '/:pid/tl/:id',
-		preHandler: RequireUser,
-		handler: GetPageTranslationHandler,
-	});
-
-	server.route({
-		method: 'POST',
-		url: '/:id',
-		preHandler: RequireUser,
-		handler: PostPageTranslationHandler,
-	});
-
-	server.route({
-		method: 'PUT',
-		url: '/:pid/tl/:id',
-		preHandler: RequireUser,
-		handler: PutPageTranslationHandler,
-	});
-
-	server.route({
-		method: 'DELETE',
-		url: '/:pid/tl/:id',
-		preHandler: RequireUser,
-		handler: DeletePageTranslationHandler,
 	});
 }
