@@ -165,6 +165,7 @@ model Selection {
   value    Int
   starting Int    @default(0)
   weekId   Int
+  points   Int
   week     Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
   player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -226,6 +227,21 @@ model Transfer {
   out      Player   @relation(name: "outPlayer", fields: [outId], references: [id])
   team     Team     @relation(fields: [teamId], references: [id])
   week     Week     @relation(fields: [weekId], references: [id])
+}
+
+model Page {
+  id          Int           @id @default(autoincrement())
+  slug        String
+  translation Translation[]
+}
+
+model Translation {
+  id       Int     @id @default(autoincrement())
+  langCode String
+  body     String
+  title    String?
+  pageId   Int
+  page     Page    @relation(fields: [pageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 // model WeeksOnTeams {
