@@ -104,21 +104,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const homeP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.homeId);
 		const awayP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.awayId);
-		console.log(homeP);
 
 		await prisma.$transaction([
-			// prisma.statistic.deleteMany({
-			// 	where: {
-			// 		matchId: +req.params.matchId
-			// 	}
-			// }),
-			// prisma.statistic.createMany({
-			// 	data: req.body.stats.map((stat: any) => ({
-			// 		...stat,
-			// 		matchId: +req.params.matchId,
-			// 		points: calculatePoints(stat, playersWithPositionIds.find((player: any) => player.id === stat.playerId)?.positionId!)
-			// 	}))
-			// }),
 			prisma.match.update({
 				where: {
 					id: +req.params.matchId
@@ -137,19 +124,15 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 											id: stat.playerId,
 										},
 										data: {
-											// TODO: reflect: should this be done now or at week validation?
-											// points: {
-											// 	increment: stat.calculatedPoints,
-											// },
 											selections: {
 												updateMany: {
 													where: {
 														weekId: match!.weekId,
 														playerId: stat.playerId,
-														starting: 1,
 													},
 													data: {
 														points: stat.calculatedPoints,
+														played: reducedStat.minutesPlayed > 0 ? 1 : 0
 													}
 												}
 											},
@@ -159,7 +142,6 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 														matchId_playerId: {
 															matchId: +req.params.matchId,
 															playerId: stat.playerId,
-															starting: 1,
 														},
 													},
 													create: {
@@ -189,10 +171,6 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 											id: stat.playerId,
 										},
 										data: {
-											// TODO: reflect: should this be done now or at week validation?
-											// points: {
-											// 	increment: stat.calculatedPoints,
-											// },
 											selections: {
 												updateMany: {
 													where: {
@@ -201,6 +179,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 													},
 													data: {
 														points: stat.calculatedPoints,
+														played: reducedStat.minutesPlayed > 0 ? 1 : 0
 													}
 												}
 											},

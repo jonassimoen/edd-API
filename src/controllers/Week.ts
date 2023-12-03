@@ -65,6 +65,73 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 		}
 	});
 
+	const teamsWithSelections = await prisma.team.findMany({
+		include: {
+			selections: {
+				where: {
+					weekId: +req.params.id
+				},
+				include: {
+					player: {
+						select: {
+							positionId: true,
+							short: true,
+						}
+					}
+				}
+			}
+		}
+	});
+	try {
+		await prisma.$transaction(async (prisma) => {
+
+			for (const team of teamsWithSelections) {
+				const startersNotPlaying = team.selections.filter((sel: any) => sel.starting && !sel.played);
+				const benchersPlayed = team.selections.filter((sel: any) => !sel.starting && sel.played);
+
+				const benchedKeeper = benchersPlayed.find((sel: any) => sel.player.positionId === 1);
+				const benchedNonKeepers = benchersPlayed.filter((sel: any) => sel.player.positionId !== 1);
+
+				console.log(`Team #${team.id} has ${team.selections.length} selections in week ${+req.params.id}, ${startersNotPlaying.length} starters did not play, ${benchersPlayed.length} bench players did play`);
+				for (const starterNotPlayed of startersNotPlaying) {
+
+					// keeper changing
+					if (starterNotPlayed.player.positionId === 1) {
+						if (benchedKeeper?.played) {
+							console.log(`Keeper ${starterNotPlayed.player.short} replaced with keeper ${benchedKeeper?.player.short}`)
+							await prisma.selection.update({
+								where: { id: starterNotPlayed.id },
+								data: { starting: 0 },
+							});
+							await prisma.selection.update({
+								where: { id: benchedKeeper.id },
+								data: { starting: 1 },
+							});
+						}
+					}
+
+					if (benchedNonKeepers.length > 0) {
+						// other player changing
+						const substitutePlayer = benchedNonKeepers.shift();
+						console.log(`Player ${starterNotPlayed.player.short} replaced with player ${substitutePlayer?.player.short}`)
+						await prisma.selection.update({
+							where: { id: starterNotPlayed.id },
+							data: { starting: 0 },
+						});
+						await prisma.selection.update({
+							where: { id: substitutePlayer?.id },
+							data: { starting: 1 },
+						});
+					}
+				}
+			}
+		});
+	} catch (err) {
+		console.error(err);
+	} finally {
+		prisma.$disconnect();
+	}
+
 	const [updatedWeek, ...other] = await prisma.$transaction([
 		prisma.week.update({
 			where: {
@@ -96,7 +163,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 				}
 			})
 		),
-		...teamPoints.map((teamPoint: any) => 
+		...teamPoints.map((teamPoint: any) =>
 			prisma.team.update({
 				where: {
 					id: teamPoint.teamId,
