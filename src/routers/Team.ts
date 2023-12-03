@@ -1,4 +1,4 @@
-import { PostAddTeamHandler, PostCopyTeamHandler, DeleteDropTeamHandler, GetTeamHandler, GetPointsTeamHandler, PostBoosterTeamHandler, PostEditTeamHandler, PostSelectionsTeamHandler, PostTransfersTeamHandler, PostResetTransfersTeamHandler, PostBadgeHandler } from "@controllers/Team";
+import { PostAddTeamHandler, PostCopyTeamHandler, DeleteDropTeamHandler, GetTeamHandler, GetPointsTeamHandler, PostBoosterTeamHandler, PostEditTeamHandler, PostSelectionsTeamHandler, PostTransfersTeamHandler, PostResetTransfersTeamHandler, PostBadgeHandler, GetRankingHandler } from "@controllers/Team";
 import { RequireUser } from "@middleware/RequireUser";
 import { AddTeamSchema, TransfersTeamSchema } from "@typesd/body-schema";
 import { FastifyPluginAsync } from "fastify";
@@ -85,5 +85,12 @@ export const TeamRouter: FastifyPluginAsync = async server => {
 				url: '/badge',
 				preHandler: RequireUser,
 				handler: PostBadgeHandler
+		});
+
+		server.route({
+				method: 'GET',
+				url: '/rankings',
+				preHandler: RequireUser,
+				handler: GetRankingHandler
 		});
 }
