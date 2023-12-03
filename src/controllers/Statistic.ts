@@ -146,6 +146,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 													where: {
 														weekId: match!.weekId,
 														playerId: stat.playerId,
+														starting: 1,
 													},
 													data: {
 														points: stat.calculatedPoints,
@@ -158,6 +159,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 														matchId_playerId: {
 															matchId: +req.params.matchId,
 															playerId: stat.playerId,
+															starting: 1,
 														},
 													},
 													create: {

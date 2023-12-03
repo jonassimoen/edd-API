@@ -122,17 +122,6 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 		}
 	});
 
-	const points = await prisma.selection.aggregate({
-		where: {
-			teamId: +req.params.id,
-			starting: 1
-		},
-		_sum: {
-			points: true
-		}	
-	});
-	console.log(points);
-
 	const transfers = await prisma.transfer.findMany({
 		where: {
 			teamId: +req.params.id,

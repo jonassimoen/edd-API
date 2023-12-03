@@ -54,6 +54,17 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 		}
 	});
 
+	const teamPoints = await prisma.selection.groupBy({
+		where: {
+			weekId: +req.params.id,
+			starting: 1,
+		},
+		by: ['teamId'],
+		_sum: {
+			points: true
+		}
+	});
+
 	const [updatedWeek, ...other] = await prisma.$transaction([
 		prisma.week.update({
 			where: {
@@ -81,6 +92,18 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 				data: {
 					points: {
 						increment: sumStatPlayer._sum.points
+					}
+				}
+			})
+		),
+		...teamPoints.map((teamPoint: any) => 
+			prisma.team.update({
+				where: {
+					id: teamPoint.teamId,
+				},
+				data: {
+					points: {
+						increment: teamPoint._sum.points,
 					}
 				}
 			})
