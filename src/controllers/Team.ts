@@ -173,9 +173,14 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 			weekId: +req.params.weekId,
 		}
 	});
+	const rank: [{ rank: number }] = await prisma.$queryRaw`SELECT CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND "teamId" = ${+req.params.id} AND starting = 1 GROUP BY "teamId"`;
+	const globalRank: [{ rank: number }] = await prisma.$queryRaw`SELECT CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE "teamId" = ${+req.params.id} AND starting = 1 GROUP BY "teamId"`;
 	rep.send({
 		players,
-		team,
+		team: {
+			...team,
+			rank: globalRank[0].rank,
+		},
 		user: req.user,
 		transfers: transfers,
 		weeks: {
@@ -186,7 +191,7 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 		// todo: replace weekstat
 		weekStat: [{
 			points: players.filter((p: any) => p.selections[0].starting === 1).reduce((acc: number, p: any) => acc + (p.stats[0]?.points || 0), 0),
-			rank: 1564,
+			rank: rank[0].rank,
 			teamId: +req.params.id,
 			value: 69,
 			weekId: +req.params.weekId
@@ -256,7 +261,7 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 	const weekId = await upcomingWeekId();
 	const lastWeekId = await finalWeekId();
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
-	
+
 	if (transfers) {
 		const transferCreateInput = transfers.map((transfer: any) => {
 			return {
@@ -291,8 +296,8 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 		);
 		rep.send({ msg: "Transfers toegekend" });
 	} else {
-	rep.status(406).send({ msg: "No transfers included." });
-}
+		rep.status(406).send({ msg: "No transfers included." });
+	}
 }
 
 export const PostResetTransfersTeamHandler = async (req: any, rep: any) => {
