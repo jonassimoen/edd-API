@@ -104,6 +104,7 @@ model Statistic {
   penaltyMissed     Int @default(0)
   duelsWon          Int @default(0)
   duelsTotal        Int @default(0)
+  goalsAgainst      Int @default(0)
 
   red      Boolean @default(false)
   yellow   Boolean @default(false)
@@ -112,6 +113,8 @@ model Statistic {
 
   match  Match  @relation(fields: [matchId], references: [id])
   player Player @relation(fields: [playerId], references: [id])
+
+  @@unique([matchId, playerId])
 }
 
 model Club {
@@ -160,12 +163,12 @@ model Selection {
   id       Int    @id @default(autoincrement())
   captain  Int    @default(0)
   played   Int    @default(0)
+  points   Int    @default(0)
   teamId   Int
   playerId Int
   value    Int
   starting Int    @default(0)
   weekId   Int
-  points   Int
   week     Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
   player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
