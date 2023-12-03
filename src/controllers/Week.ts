@@ -60,7 +60,17 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 				id: +req.params.id,
 			},
 			data: {
-				validated: true
+				validated: true,
+				Match: {
+					updateMany: {
+						where: {
+							weekId: +req.params.id
+						},
+						data: {
+							status: ProcessState.VALIDATED
+						},
+					},
+				},
 			}
 		}),
 		...statsSumPoints.map((sumStatPlayer: any) =>
@@ -75,14 +85,6 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 				}
 			})
 		),
-		prisma.match.updateMany({
-			where: {
-				weekId: +req.params.id,
-			},
-			data: {
-				status: ProcessState.VALIDATED,
-			}
-		}),
 	]);
 	rep.send(updatedWeek);
 }

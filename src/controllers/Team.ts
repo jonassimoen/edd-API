@@ -112,6 +112,7 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 		...rest,
 		selection: selections[0]
 	})).sort((p1, p2) => (p2.selection.starting !== p1.selection.starting) ? (p2.selection.starting - p1.selection.starting) : ((p1.positionId || 0) - (p2.positionId || 0)));
+
 	const team = await prisma.team.findFirst({
 		where: {
 			id: +req.params.id
@@ -120,6 +121,17 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 			user: true
 		}
 	});
+
+	const points = await prisma.selection.aggregate({
+		where: {
+			teamId: +req.params.id,
+			starting: 1
+		},
+		_sum: {
+			points: true
+		}	
+	});
+	console.log(points);
 
 	const transfers = await prisma.transfer.findMany({
 		where: {

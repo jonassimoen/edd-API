@@ -1,8 +1,9 @@
 import { calculatePoints } from "@/utils/PointsCalculator";
 import { prisma } from "@db/client"
-import { ProcessState } from "@prisma/client";
+import { ProcessState, Statistic } from "@prisma/client";
 import HttpError from "@utils/HttpError";
 import axios from "axios";
+import { pick } from "lodash";
 
 export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 	const players = await prisma.player.findMany({
@@ -26,6 +27,11 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			statGoals: sum.statGoals + current.goals,
 			statReds: sum.statReds + current.reds,
 			statYellows: sum.statYellows + current.yellows,
+			statShots: sum.statShots + current.shots,
+			statShotsOT: sum.statShotsOT + current.shotsOnTarget,
+			statTotPass: sum.statTotPass + current.totalPasses,
+			statAccPass: sum.statAccPass + current.accuratePasses,
+			statKeyPass: sum.statKeyPass + current.keyPasses,
 			total: sum.total + current.points,
 		}),
 			{
@@ -47,7 +53,9 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			},
 			playerValue: player.value,
 			positionId: player.positionId,
-			...sumStats
+			...sumStats,
+			statShotsAccuracy: player.statsShotsOT / player.statShots,
+			statPassAccuracy: player.statAccPass / player.statTotPass,
 		};
 	}).sort((a: any, b: any) => b.total - a.total);
 	rep.send(allStatsPlayers);
@@ -62,6 +70,10 @@ export const GetMatchStatisticsHandler = async (req: any, rep: any) => {
 	rep.send(stats);
 }
 
+declare type ExtendedStat = Statistic & {
+	calculatedPoints?: number
+}
+
 export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 	try {
 		const match = await prisma.match.findUnique({
@@ -74,6 +86,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 			select: {
 				id: true,
 				positionId: true,
+				clubId: true,
 			},
 			where: {
 				clubId: {
@@ -81,19 +94,31 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 				}
 			}
 		});
+		const playersWithCalculatedPoints = req.body.stats.map((stat: any) => {
+			const player = playersWithPositionIds.find((player: any) => player.id === stat.playerId);
+			return ({
+				...stat,
+				clubId: player!.clubId,
+				calculatedPoints: calculatePoints(stat, player!.positionId!),
+			})
+		});
+		const homeP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.homeId);
+		const awayP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.awayId);
+		console.log(homeP);
+
 		await prisma.$transaction([
-			prisma.statistic.deleteMany({
-				where: {
-					matchId: +req.params.matchId
-				}
-			}),
-			prisma.statistic.createMany({
-				data: req.body.stats.map((stat: any) => ({
-					...stat,
-					matchId: +req.params.matchId,
-					points: calculatePoints(stat, playersWithPositionIds.find((player: any) => player.id === stat.playerId)?.positionId!)
-				}))
-			}),
+			// prisma.statistic.deleteMany({
+			// 	where: {
+			// 		matchId: +req.params.matchId
+			// 	}
+			// }),
+			// prisma.statistic.createMany({
+			// 	data: req.body.stats.map((stat: any) => ({
+			// 		...stat,
+			// 		matchId: +req.params.matchId,
+			// 		points: calculatePoints(stat, playersWithPositionIds.find((player: any) => player.id === stat.playerId)?.positionId!)
+			// 	}))
+			// }),
 			prisma.match.update({
 				where: {
 					id: +req.params.matchId
@@ -102,6 +127,106 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 					homeScore: +req.body.score.home,
 					awayScore: +req.body.score.away,
 					status: ProcessState.STATS_UPDATED,
+					home: {
+						update: {
+							players: {
+								update: homeP.map((stat: ExtendedStat) => {
+									const reducedStat = pick(stat, ["minutesPlayed", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									return ({
+										where: {
+											id: stat.playerId,
+										},
+										data: {
+											// TODO: reflect: should this be done now or at week validation?
+											// points: {
+											// 	increment: stat.calculatedPoints,
+											// },
+											selections: {
+												updateMany: {
+													where: {
+														weekId: match!.weekId,
+														playerId: stat.playerId,
+													},
+													data: {
+														points: stat.calculatedPoints,
+													}
+												}
+											},
+											stats: {
+												upsert: {
+													where: {
+														matchId_playerId: {
+															matchId: +req.params.matchId,
+															playerId: stat.playerId,
+														},
+													},
+													create: {
+														...reducedStat,
+														matchId: +req.params.matchId,
+														points: stat.calculatedPoints,
+													},
+													update: {
+														...reducedStat,
+														points: stat.calculatedPoints,
+													}
+												}
+											}
+										}
+									})
+								})
+							}
+						}
+					},
+					away: {
+						update: {
+							players: {
+								update: awayP.map((stat: ExtendedStat) => {
+									const reducedStat = pick(stat, ["minutesPlayed", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									return ({
+										where: {
+											id: stat.playerId,
+										},
+										data: {
+											// TODO: reflect: should this be done now or at week validation?
+											// points: {
+											// 	increment: stat.calculatedPoints,
+											// },
+											selections: {
+												updateMany: {
+													where: {
+														weekId: match!.weekId,
+														playerId: stat.playerId,
+													},
+													data: {
+														points: stat.calculatedPoints,
+													}
+												}
+											},
+											stats: {
+												upsert: {
+													where: {
+														matchId_playerId: {
+															matchId: +req.params.matchId,
+															playerId: stat.playerId,
+														},
+													},
+													create: {
+														...reducedStat,
+														matchId: +req.params.matchId,
+														points: stat.calculatedPoints,
+													},
+													update: {
+														...reducedStat,
+														points: stat.calculatedPoints,
+													}
+												}
+											}
+										}
+									})
+								})
+							}
+						}
+					},
 				}
 			}),
 		]);
