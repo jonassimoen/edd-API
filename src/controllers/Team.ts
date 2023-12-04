@@ -173,8 +173,8 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 			weekId: +req.params.weekId,
 		}
 	});
-	const weeklyData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND starting = 1 GROUP BY "teamId"`;
-	const globalData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId"`;
+	const weeklyData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND starting = 1 GROUP BY "teamId" ORDER BY rank DESC`;
+	const globalData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId" ORDER BY rank DESC`;
 	rep.send({
 		players,
 		team: {
@@ -193,6 +193,8 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 		weekStat: [{
 			rank: weeklyData.find((teamData: any) => teamData.teamId === +req.params.id)?.rank || 0,
 			points: weeklyData.find((teamData: any) => teamData.teamId === +req.params.id)?.points || 0,
+			winner: weeklyData[0]?.points || 0,
+			average: weeklyData.reduce((acc: number, curr: any) => curr.points + acc,0) / weeklyData.length,
 			teamId: +req.params.id,
 			value: 69,
 			weekId: +req.params.weekId
