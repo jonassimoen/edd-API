@@ -111,6 +111,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 				id: true,
 				positionId: true,
 				clubId: true,
+				short: true,
 			},
 			where: {
 				clubId: {
@@ -120,10 +121,11 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const playersWithCalculatedPoints = req.body.stats.map((stat: any) => {
 			const player = playersWithPositionIds.find((player: any) => player.id === stat.playerId);
+			const calculatedPoints = calculatePoints(stat, player!.positionId || 0);
 			return ({
 				...stat,
 				clubId: player!.clubId,
-				calculatedPoints: calculatePoints(stat, player!.positionId!),
+				calculatedPoints,
 			})
 		});
 		const homeP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.homeId);

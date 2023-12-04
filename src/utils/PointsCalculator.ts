@@ -22,31 +22,26 @@ declare type Statistic = {
 	penaltyMissed: number,
 	duelsWon: number,
 	duelsTotal: number,
+	goalsAgainst: number,
 	red: boolean,
 	yellow: boolean,
 	motm: boolean,
 }
 
-enum PPS {
-	PLAYED_MORE_THAN_60_MIN = 2,
-	PLAYED_LESS_THAN_60_MIN = 1,
-	GOAL_GK = 7,
-	GOAL_DEF = 6,
-	GOAL_MID = 5,
-	GOAL_ATT = 4,
-	ASSIST = 2,
-	PENALTY_SAVE = 5,
-	PENALTY_MISS = -2,
-	MOTM = 5,
-	YELLOW = -1,
-	RED = -3,
-	OWN_GOAL = -2,
-	CONCEDED_2_GK = -2,
-	CONCEDED_2_DEF = -1,
-	SAVES_PER_2 = 1,
-	CS_GK = 4,
-	CS_DEF = 4,
-	CS_MID = 1,
+const PPS = {
+	PLAYED_MORE_THAN_60_MIN: [0, 2, 2, 2, 2],
+	PLAYED_LESS_THAN_60_MIN: [0, 1, 1, 1, 1],
+	GOAL: [0, 7, 6, 5, 4],
+	ASSIST: [0, 3, 3, 3, 3],
+	PENALTY_SAVE: [0, 5, 15, 15, 15],
+	PENALTY_MISS: [0, -5, -2, -2, -2],
+	MOTM: [0, 5, 5, 5, 5],
+	YELLOW: [0, -1, -1, -1, -1],
+	RED: [0, -3, -3, -3, -3],
+	OWN_GOAL: [0, -2, -2, -2, -2],
+	CONCEDED_2: [0, -2, -1, 0, 0],
+	SAVES_PER_2: [0, 1, 0, 0, 0],
+	CLEAN_SHEET: [0, 4, 4, 1, 0],
 
 	// PASS_ACCURACY_MORE_65 = 0,
 	// KEY_PASSES_PER_2 = 0,
@@ -58,58 +53,21 @@ enum PPS {
 
 }
 
-export const calculatePoints = (playerStat: Statistic, position: number): number => {
-	let tempPoints = 0;
-	tempPoints += playerStat.minutesPlayed > 60 ? PPS.PLAYED_MORE_THAN_60_MIN : (playerStat.minutesPlayed > 0) ? PPS.PLAYED_LESS_THAN_60_MIN : 0;
-	tempPoints += playerStat.assists * PPS.ASSIST;
-	tempPoints += playerStat.penaltyMissed * PPS.PENALTY_MISS;
-
-	switch (position) {
-		case 1:
-			tempPoints += calculatePointsGK(playerStat);
-			break;
-		case 2:
-			tempPoints += calculatePointsDEF(playerStat);
-			break;
-		case 3:
-			tempPoints += calculatePointsMID(playerStat);
-			break;
-		case 4:
-			tempPoints += calculatePointsATT(playerStat);
-			break;
-	}
-	return +tempPoints || 0;
-}
-
-const calculatePointsGK = (playerStat: Statistic): number => {
+export const calculatePoints = (playerStat: Statistic, positionId: number): number => {
 	let tempPoints = 0;
 
-	tempPoints += Math.floor(playerStat.saves / 2) * PPS.SAVES_PER_2;
-	tempPoints += playerStat.goals * PPS.GOAL_GK;
-
-	return tempPoints;
-}
-
-const calculatePointsDEF = (playerStat: Statistic): number => {
-	let tempPoints = 0;
-
-	tempPoints += playerStat.goals * PPS.GOAL_DEF;
-
-	return tempPoints;
-}
-
-const calculatePointsMID = (playerStat: Statistic): number => {
-	let tempPoints = 0;
-
-	tempPoints += playerStat.goals * PPS.GOAL_MID;
-
-	return tempPoints;
-}
-
-const calculatePointsATT = (playerStat: Statistic): number => {
-	let tempPoints = 0;
-
-	tempPoints += playerStat.goals * PPS.GOAL_ATT;
+	tempPoints += playerStat.minutesPlayed > 60 ? PPS.PLAYED_MORE_THAN_60_MIN[positionId] : (playerStat.minutesPlayed > 0) ? PPS.PLAYED_LESS_THAN_60_MIN[positionId] : 0;
+	tempPoints += playerStat.goals * PPS.GOAL[positionId];
+	tempPoints += playerStat.assists * PPS.ASSIST[positionId];
+	tempPoints += playerStat.penaltyMissed * PPS.PENALTY_MISS[positionId];
+	tempPoints += playerStat.penaltySaved * PPS.PENALTY_SAVE[positionId];
+	tempPoints += playerStat.motm ? PPS.MOTM[positionId] : 0;
+	tempPoints += playerStat.yellow ? PPS.YELLOW[positionId] : 0;
+	tempPoints += playerStat.red ? PPS.RED[positionId] : 0;
+	tempPoints += Math.floor(playerStat.saves / 2) * PPS.SAVES_PER_2[positionId];
+	// tempPoints += playerStat.ownGoal * PPS.OWN_GOAL[positionId];
+	// tempPoints += Math.floor(playerStat.goalsAgainst / 2) * PPS.CONCEDED_2[positionId];
+	// tempPoints += playerStat.goalsAgainst === 0 ? PPS.CLEAN_SHEET[positionId] : 0;
 
 	return tempPoints;
 }
