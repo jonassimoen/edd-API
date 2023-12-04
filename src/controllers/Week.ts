@@ -191,7 +191,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 	const deadlineWeek = await prisma.week.findFirst({
 		where: {
 			deadlineDate: {
-				gte: new Date()
+				gt: new Date()
 			}
 		},
 		orderBy: {
@@ -212,7 +212,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 		deadlineInfo: {
 			deadlineDate: deadlineWeek?.deadlineDate,
 			deadlineWeek: deadlineWeek?.id,
-			displayWeek: displayWeek?.id,
+			displayWeek: displayWeek?.id || deadlineWeek?.id,
 			endWeek: weeks[weeks.length - 1].id,
 		},
 		weeks
