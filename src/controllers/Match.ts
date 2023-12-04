@@ -106,8 +106,9 @@ export const ImportMatchesHandler = async (req: any, rep: any) => {
 			'x-rapidapi-host': 'v3.football.api-sports.io'
 		},
 		params: {
-			'league': 1,
-			'season': 2022,
+			'league': process.env.LEAGUE_CODE,
+			'season': process.env.SEASON,
+			'status': 'NS',
 		}
 	});
 
