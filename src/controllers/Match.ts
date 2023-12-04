@@ -136,6 +136,7 @@ export const ImportMatchesHandler = async (req: any, rep: any) => {
 		})
 		rep.send(createdGames)
 	} catch (err: any) {
+		console.error(err);
 		throw new Error("Prisma error " + err);
 	}
 }

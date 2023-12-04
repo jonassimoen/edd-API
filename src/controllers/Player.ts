@@ -81,8 +81,9 @@ export const ImportPlayersHandler = async (req: any, rep: any) => {
 		const createdPlayers = await prisma.player.createMany({
 			data: respToData,
 		})
-		// rep.send(createdPlayers)
+		rep.send(createdPlayers)
 	} catch (err: any) {
+		console.error(err);
 		throw new Error("Prisma error " + err);
 	}
 }
