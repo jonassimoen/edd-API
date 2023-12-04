@@ -52,8 +52,7 @@ export const DeletePlayerHandler = async (req: any, rep: any) => {
 }
 
 export const ImportPlayersHandler = async (req: any, rep: any) => {
-	console.log("importing players");
-	rep.send({ msg: "Importing players has started" });
+	console.log("Import players started");
 	// should import images too: https://media.api-sports.io/football/teams/{team_id}.png
 
 	// const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../assets/players.json'), 'utf-8')); # dev purposes only
