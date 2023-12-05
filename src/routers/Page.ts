@@ -7,7 +7,6 @@ export const PublicPageRouter: FastifyPluginAsync = async server => {
 	server.route({
 		method: 'GET',
 		url: '',
-		preHandler: RequireUser,
 		handler: GetPageHandler,
 		schema: {
 			querystring: {

@@ -90,7 +90,6 @@ export const TeamRouter: FastifyPluginAsync = async server => {
 		server.route({
 				method: 'GET',
 				url: '/rankings',
-				preHandler: RequireUser,
 				handler: GetRankingHandler
 		});
 }
