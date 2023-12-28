@@ -1,7 +1,7 @@
 import { DeleteMatchHandler, GetMatchHandler, GetMatchesHandler, ImportMatchesHandler, PostMatchHandler, PutMatchHandler } from '@/controllers/Match';
 
 import { RequireUser } from "@/middleware/RequireUser";
-import { MatchPostSchema, MatchPutSchema } from "@/typesd/body-schema";
+import { MatchPostSchema, MatchPutSchema } from "@/types/body-schema";
 import { FastifyPluginAsync } from "fastify"
 
 export const PublicMatchRouter: FastifyPluginAsync = async server => {

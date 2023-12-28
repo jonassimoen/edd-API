@@ -1,4 +1,4 @@
-import { ClubPostSchema, ClubPutSchema } from "@/typesd/body-schema";
+import { ClubPostSchema, ClubPutSchema } from "@/types/body-schema";
 import { DeleteClubHandler, GetClubHandler, GetClubsHandler, ImportClubsHandler, PostClubHandler, PutClubHandler } from "@/controllers/Club";
 import { RequireUser } from "@/middleware/RequireUser";
 import { FastifyPluginAsync } from "fastify"
