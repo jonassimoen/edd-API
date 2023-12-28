@@ -1,6 +1,6 @@
 import { finalWeekId, upcomingWeekId } from '@/utils/Common';
-import { prisma } from "@db/client"
-import HttpError from "@utils/HttpError";
+import { prisma } from "@/db/client"
+import HttpError from "@/utils/HttpError";
 import { max } from "lodash";
 
 export const PostAddTeamHandler = async (req: any, rep: any) => {

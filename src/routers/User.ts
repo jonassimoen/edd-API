@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
-import { GoogleAuthHandler } from "@controllers/UserAuth";
-import { GetProfileHandler, GetTeamsHandler, PutUserHandler } from "@controllers/User";
-import { RequireUser } from "@middleware/RequireUser";
+import { GoogleAuthHandler } from "@/controllers/UserAuth";
+import { GetProfileHandler, GetTeamsHandler, PutUserHandler } from "@/controllers/User";
+import { RequireUser } from "@/middleware/RequireUser";
 
 export const UserRouter: FastifyPluginAsync = async server => {
 		server.route({

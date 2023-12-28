@@ -1,7 +1,7 @@
 import { calculatePoints } from "@/utils/PointsCalculator";
-import { prisma } from "@db/client"
+import { prisma } from "@/db/client"
 import { ProcessState, Statistic } from "@prisma/client";
-import HttpError from "@utils/HttpError";
+import HttpError from "@/utils/HttpError";
 import axios from "axios";
 import { pick } from "lodash";
 

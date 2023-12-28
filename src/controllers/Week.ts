@@ -1,4 +1,4 @@
-import { prisma } from "@db/client"
+import { prisma } from "@/db/client"
 import { ProcessState } from "@prisma/client";
 
 export const GetWeeksHandler = async (req: any, rep: any) => {

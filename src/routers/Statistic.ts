@@ -1,7 +1,7 @@
-import { PostMatchStartingHandler } from "@controllers/MatchEvent";
-import { GetMatchStatisticsHandler, PutMatchStatisticHandler, PostMatchStatisticsHandler, DeleteMatchStatisticHandler, GetPlayerStatisticsHandler, ImportMatchStatisticHandler } from "@controllers/Statistic";
-import { RequireUser } from "@middleware/RequireUser";
-import { MatchStartingPostSchema, MatchStatisticPostSchema, MatchStatisticPutSchema } from "@typesd/body-schema";
+import { PostMatchStartingHandler } from "@/controllers/MatchEvent";
+import { GetMatchStatisticsHandler, PutMatchStatisticHandler, PostMatchStatisticsHandler, DeleteMatchStatisticHandler, GetPlayerStatisticsHandler, ImportMatchStatisticHandler } from "@/controllers/Statistic";
+import { RequireUser } from "@/middleware/RequireUser";
+import { MatchStartingPostSchema, MatchStatisticPostSchema, MatchStatisticPutSchema } from "@/typesd/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicMatchStatisticRouter: FastifyPluginAsync = async server => {
