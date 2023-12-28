@@ -5,16 +5,16 @@
       // "files": true
   },
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "api", // Specific to be used by Vercel
     "target": "es2016",               
     "module": "Node16",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
-     "@/*": ["./src/*","./dist/*","/vercel/output/*"],
+     "@/*": ["./src/*", "./api/*"],
     }
   },
 }
