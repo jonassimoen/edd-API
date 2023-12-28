@@ -1,6 +1,6 @@
-import { DeletePageHandler, GetPageHandler, PostPageHandler, PutPageHandler } from "@/controllers/Page";
-import { RequireUser } from "@/middleware/RequireUser";
-import { PostPageSchema, PutPageSchema } from "@/types/body-schema";
+import { DeletePageHandler, GetPageHandler, PostPageHandler, PutPageHandler } from "../controllers/Page";
+import { RequireUser } from "../middleware/RequireUser";
+import { PostPageSchema, PutPageSchema } from "../types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicPageRouter: FastifyPluginAsync = async server => {

@@ -1,8 +1,8 @@
 import { CookieSerializeOptions } from "@fastify/cookie";
-import { getGoogleOAuthTokens, getGoogleUserInfo } from "@/services/auth/google";
-import { prisma } from "@/db/client";
-import { signJwt } from "@/utils/JWT";
-import { AccessTokenRequest } from "@/types/http";
+import { getGoogleOAuthTokens, getGoogleUserInfo } from "../services/auth/google";
+import { prisma } from "../db/client";
+import { signJwt } from "../utils/JWT";
+import { AccessTokenRequest } from "../types/http";
 import qs from "qs";
 
 const accessTokenCookieOptions: CookieSerializeOptions = {

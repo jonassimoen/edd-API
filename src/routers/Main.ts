@@ -3,7 +3,7 @@ import { FastifyPluginAsync } from "fastify";
 import { TeamRouter } from "./Team";
 import { AdminPlayerRouter, PublicPlayerRouter } from './Player';
 import { AdminClubRouter, PublicClubRouter } from './Club';
-import { requireAdmin } from '@/middleware//RequireAdmin';
+import { requireAdmin } from '../middleware//RequireAdmin';
 import { AdminMatchRouter, PublicMatchRouter } from './Match';
 import { AdminMatchEventRouter, PublicMatchEventRouter } from './MatchEvent';
 import { AdminMatchStatisticRouter, PublicMatchStatisticRouter, PublicPlayerStatisticRouter } from './Statistic';

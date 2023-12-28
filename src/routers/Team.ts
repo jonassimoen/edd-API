@@ -1,6 +1,6 @@
-import { PostAddTeamHandler, PostCopyTeamHandler, DeleteDropTeamHandler, GetTeamHandler, GetPointsTeamHandler, PostBoosterTeamHandler, PostEditTeamHandler, PostSelectionsTeamHandler, PostTransfersTeamHandler, PostResetTransfersTeamHandler, PostBadgeHandler, GetRankingHandler } from "@/controllers/Team";
-import { RequireUser } from "@/middleware/RequireUser";
-import { AddTeamSchema, TransfersTeamSchema } from "@/types/body-schema";
+import { PostAddTeamHandler, PostCopyTeamHandler, DeleteDropTeamHandler, GetTeamHandler, GetPointsTeamHandler, PostBoosterTeamHandler, PostEditTeamHandler, PostSelectionsTeamHandler, PostTransfersTeamHandler, PostResetTransfersTeamHandler, PostBadgeHandler, GetRankingHandler } from "../controllers/Team";
+import { RequireUser } from "../middleware/RequireUser";
+import { AddTeamSchema, TransfersTeamSchema } from "../types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const TeamRouter: FastifyPluginAsync = async server => {

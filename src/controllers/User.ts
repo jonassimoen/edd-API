@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client";
+import { prisma } from "../db/client";
 
 export const GetProfileHandler = async (req: any, rep: any) => {
 		const user = await prisma.user.findUnique({

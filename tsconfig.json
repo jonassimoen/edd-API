@@ -1,11 +1,6 @@
 {
-  "ts-node": {
-      // Do not forget to `npm i -D tsconfig-paths`
-      "require": ["tsconfig-paths/register"],
-      // "files": true
-  },
   "compilerOptions": {
-    "outDir": "api", // Specific to be used by Vercel
+    "outDir": "dist", // Specific to be used by Vercel
     "target": "es2016",               
     "module": "Node16",
     "esModuleInterop": true,
@@ -13,8 +8,5 @@
     "strict": true,
     "skipLibCheck": true,
     "baseUrl": "./",
-    "paths": {
-     "@/*": ["./src/*", "./api/*"],
-    }
   },
 }

@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client";
+import { prisma } from "../db/client";
 
 export const GetPagesHandler = async (req: any, rep: any) => {
 	const pages = await prisma.page.findMany({

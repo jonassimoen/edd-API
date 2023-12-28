@@ -1,5 +1,5 @@
 import axios from "axios";
-import HttpError from "@/utils/HttpError";
+import HttpError from "../../utils/HttpError";
 import qs from "qs";
 
 

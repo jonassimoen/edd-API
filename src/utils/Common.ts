@@ -1,4 +1,4 @@
-import { prisma } from "@/db/client"
+import { prisma } from "../db/client"
 
 export const upcomingWeekId = async () => {
 		const week = await prisma.week.findFirst({

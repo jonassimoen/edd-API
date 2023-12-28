@@ -1,6 +1,6 @@
-import { GetWeeksHandler, GetWeekHandler, PutWeekHandler, PostWeeksHandler, DeleteWeekHandler, GetDeadlineInfoHandler, PostWeekValidateHandler } from "@/controllers/Week";
-import { RequireUser } from "@/middleware/RequireUser";
-import { WeekPostSchema, WeekPutSchema } from "@/types/body-schema";
+import { GetWeeksHandler, GetWeekHandler, PutWeekHandler, PostWeeksHandler, DeleteWeekHandler, GetDeadlineInfoHandler, PostWeekValidateHandler } from "../controllers/Week";
+import { RequireUser } from "../middleware/RequireUser";
+import { WeekPostSchema, WeekPutSchema } from "../types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicWeekRouter: FastifyPluginAsync = async server => {
