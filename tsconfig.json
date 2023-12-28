@@ -14,15 +14,15 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-     "@/*": ["src/*"],
-     "@assets/*": ["src/assets/*"],
-     "@controllers/*": ["src/controllers/*"],
-     "@db/*": ["src/db/*"],
-     "@middleware/*": ["src/middleware/*"],
-     "@routers/*": ["src/routers/*"],
-     "@services/*": ["src/services/*"],
-     "@typesd/*": ["src/types/*"],
-     "@utils/*": ["src/utils/*"],
+     "@/*": ["./src/*"],
+     "@assets/*": ["./src/assets/*"],
+     "@controllers/*": ["./src/controllers/*"],
+     "@db/*": ["./src/db/*"],
+     "@middleware/*": ["./src/middleware/*"],
+     "@routers/*": ["./src/routers/*"],
+     "@services/*": ["./src/services/*"],
+     "@typesd/*": ["./src/types/*"],
+     "@utils/*": ["./src/utils/*"],
     }
   }
 }
