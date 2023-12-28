@@ -55,13 +55,13 @@ server.setErrorHandler((err, req, rep) => {
   }
 });
 
-server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, address) => {
-	if (err) {
-		console.error(err);
-		process.exit(1);
-	}
-	console.log(`Server listening at ${address}`);
-});
+// server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, address) => {
+// 	if (err) {
+// 		console.error(err);
+// 		process.exit(1);
+// 	}
+// 	console.log(`Server listening at ${address}`);
+// });
 
 export default async (req: any, res: any) => {
   await server.ready();

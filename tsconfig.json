@@ -14,7 +14,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-     "@/*": ["./src/*","./dist/*"],
+     "@/*": ["./src/*","./dist/*","/vercel/output/*"],
     }
-  }
+  },
 }
