@@ -50,7 +50,7 @@ export const AdminPlayerRouter: FastifyPluginAsync = async server => {
 		
 		server.route({
 				method: 'GET',
-				url: '/import',
+				url: '/import/:type',
 				preHandler: RequireUser,
 				handler: ImportPlayersHandler
 		});
