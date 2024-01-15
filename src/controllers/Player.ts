@@ -1,5 +1,5 @@
 import { prisma } from "../db/client"
-import { MapPositionNameToId, fetchPlayers } from "../utils/ExternalAPI";
+import { fetchPlayers, fetchPlayersPerClub } from "../utils/ExternalAPI";
 import * as fs from 'fs';
 import axios from "axios";
 import path from "path";
@@ -52,37 +52,10 @@ export const DeletePlayerHandler = async (req: any, rep: any) => {
 }
 
 export const ImportPlayersHandler = async (req: any, rep: any) => {
-	console.log("Import players started");
-	// should import images too: https://media.api-sports.io/football/teams/{team_id}.png
-
-	// const data = JSON.parse(fs.readFileSync(path.join(__dirname, '../assets/players.json'), 'utf-8')); # dev purposes only
-	const data = await fetchPlayers(req);
-
 	const clubs = (await prisma.club.findMany()).map((club: any) => ({
 		id: club.id,
 		external: club.externalId,
 	}));
-
-	const respToData = data.map((playerObj: any) => ({
-		externalId: playerObj.player.id,
-		forename: playerObj.player.firstname,
-		surname: playerObj.player.lastname,
-		clubId: clubs.find((c: any) => c.external === playerObj.statistics[0].team.id)?.id,
-		captain: playerObj.statistics[0].games.captain ? 1 : 0,
-		positionId: MapPositionNameToId(playerObj.statistics[0].games.position),
-		name: `${playerObj.player.firstname} ${playerObj.player.lastname}`,
-		short: playerObj.player.name,
-		portraitUrl: playerObj.player.portraitUrl
-	}));
-
-
-	try {
-		const createdPlayers = await prisma.player.createMany({
-			data: respToData,
-		})
-		rep.send(createdPlayers)
-	} catch (err: any) {
-		console.error(err);
-		throw new Error("Prisma error " + err);
-	}
+	// const data = await fetchPlayers(req, clubs);
+	const data = await fetchPlayersPerClub(req, clubs);
 }
