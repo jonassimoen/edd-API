@@ -25,7 +25,8 @@ export const PutWeekHandler = async (req: any, rep: any) => {
 			id: +req.params.id
 		},
 		data: {
-			deadlineDate: req.body.deadlineDate
+			deadlineDate: req.body.deadlineDate,
+			name: req.body.name,
 		}
 	});
 	rep.send(week);
@@ -35,7 +36,8 @@ export const PostWeeksHandler = async (req: any, rep: any) => {
 	const week = await prisma.week.create({
 		data: {
 			id: +req.body.id,
-			deadlineDate: req.body.deadlineDate
+			deadlineDate: req.body.deadlineDate,
+			name: req.body.name,
 		}
 	});
 	rep.send(week);
