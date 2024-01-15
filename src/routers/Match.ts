@@ -49,7 +49,7 @@ export const AdminMatchRouter: FastifyPluginAsync = async server => {
 		});
 		
 		server.route({
-				method: 'POST',
+				method: 'GET',
 				url: '/import',
 				preHandler: RequireUser,
 				handler: ImportMatchesHandler
