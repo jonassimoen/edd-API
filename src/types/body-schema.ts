@@ -199,6 +199,7 @@ export const WeekPostSchema = {
 	properties: {
 		id: { type: 'number' },
 		deadlineDate: { type: 'string' },
+		name: { type: 'string' },
 	}
 };
 
@@ -206,6 +207,7 @@ export const WeekPutSchema = {
 	type: 'object',
 	properties: {
 		deadlineDate: { type: 'string' },
+		name: { type: 'string' },
 	}
 };
 
