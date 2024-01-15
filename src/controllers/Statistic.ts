@@ -106,6 +106,10 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 			}
 		});
 
+		if(!match?.awayId || !match.homeId) {
+			throw new HttpError('Match has no home or away team assigned.',400);
+		}
+
 		const playersWithPositionIds = await prisma.player.findMany({
 			select: {
 				id: true,

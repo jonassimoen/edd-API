@@ -191,15 +191,15 @@ model Match {
   // roundId Int
   date       DateTime @db.Timestamptz()
   postponed  Int?
-  homeScore  Int?     @default(0)
-  awayScore  Int?     @default(0)
-  homeId     Int
-  awayId     Int
+  homeScore  Int?     @default(-1)
+  awayScore  Int?     @default(-1)
+  homeId     Int?
+  awayId     Int?
 
   status ProcessState @default(CREATED)
 
-  home Club @relation(name: "homeMatch", fields: [homeId], references: [id])
-  away Club @relation(name: "awayMatch", fields: [awayId], references: [id])
+  home Club? @relation(name: "homeMatch", fields: [homeId], references: [id])
+  away Club? @relation(name: "awayMatch", fields: [awayId], references: [id])
 
   week       Week?        @relation(fields: [weekId], references: [id])
   MatchEvent MatchEvent[]

@@ -70,26 +70,14 @@ export const PutMatchHandler = async (req: any, rep: any) => {
 
 export const PostMatchHandler = async (req: any, rep: any) => {
 	const { homeId, awayId, weekId, ...rest } = req.body;
-	const match = await prisma.match.create({
-		data: {
-			...rest,
-			home: {
-				connect: {
-					id: homeId
-				}
-			},
-			away: {
-				connect: {
-					id: awayId
-				}
-			},
-			week: {
-				connect: {
-					id: weekId
-				}
-			},
-		}
-	});
+	const data = {...rest, week: {connect: {id: weekId}}};
+	if(homeId) {
+		data.home = {connect:{id:homeId}};
+	}
+	if(awayId) {
+		data.home = {connect:{id:awayId}};
+	}
+	const match = await prisma.match.create({data});
 	rep.send(match);
 }
 
