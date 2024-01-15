@@ -50,11 +50,11 @@ export const ImportPlayersHandler = async (req: any, rep: any) => {
     external: club.externalId,
   }));
   if (req.params.type && req.params.type === "all") {
-    fetchPlayers(req, clubs);
-    rep.send({ msg: "Import has started" });
+    await fetchPlayers(req, clubs);
+    rep.send({ msg: "Import successfull" });
   } else if (req.params.type && req.params.type === "club") {
-    fetchPlayersPerClub(req, clubs);
-    rep.send({ msg: "Import has started" });
+    await fetchPlayersPerClub(req, clubs);
+    rep.send({ msg: "Import successfull" });
   } else {
     throw new HttpError("You should define a type", 406);
   }
