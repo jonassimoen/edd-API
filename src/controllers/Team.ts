@@ -316,7 +316,7 @@ export const PostBadgeHandler = async (req: any, rep: any) => {
 
 export const GetRankingHandler = async (req: any, rep: any) => {
 	const result: any[] = await prisma.$queryRaw`
-			SELECT u."firstName", u."lastName", u.id as "userId", t.id as "teamId", t.name, SUM(s.points)::INTEGER as points, (RANK() OVER(ORDER BY SUM(s.points)))::INTEGER 
+			SELECT u."firstName", u."lastName", u.id as "userId", t.id as "teamId", t.name, SUM(s.points)::INTEGER as points, (RANK() OVER(ORDER BY SUM(s.points) DESC))::INTEGER 
 			FROM "Selection" s 
 			JOIN "Team" t ON t.id = s."teamId"
 			JOIN "User" u ON u.id = t."userId"
