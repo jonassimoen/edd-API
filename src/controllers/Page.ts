@@ -9,8 +9,7 @@ export const GetPagesHandler = async (req: any, rep: any) => {
 		},
 		include: {
 			translation: true
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 
 	rep.send(pages);
@@ -24,8 +23,7 @@ export const GetPageHandler = async (req: any, rep: any) => {
 		},
 		include: {
 			translation: true
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 
 	rep.send(pages);

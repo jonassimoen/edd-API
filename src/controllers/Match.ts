@@ -10,8 +10,7 @@ export const GetMatchesHandler = async (req: any, rep: any) => {
 		},
 		orderBy: {
 			date: 'asc'
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	rep.send(matches);
 }
@@ -55,7 +54,6 @@ export const GetMatchHandler = async (req: any, rep: any) => {
 			homeScore: true,
 			awayScore: true,
 		},
-		cacheStrategy: { ttl: 60 },
 	});
 	rep.send(match);
 }
@@ -106,7 +104,7 @@ export const ImportMatchesHandler = async (req: any, rep: any) => {
 		throw new HttpError(Object.values(res.data.errors).reduce((s, v) => `${s}${v} `, '') as string, 429)
 	}
 
-	const clubs = (await prisma.club.findMany({cacheStrategy: { ttl: 60 }})).map((club: any) => ({
+	const clubs = (await prisma.club.findMany()).map((club: any) => ({
 		id: club.id,
 		external: club.externalId,
 	}));

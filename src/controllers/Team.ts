@@ -18,8 +18,7 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 		select: {
 			id: true,
 			value: true,
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 
 	const weekId = await upcomingWeekId();
@@ -107,8 +106,7 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 					weekId: true,
 				}
 			}
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	const players = playersWithMultipleSelections.map(({ selections, ...rest }) => ({
 		...rest,
@@ -121,16 +119,14 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 		},
 		include: {
 			user: true
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 
 	const transfers = await prisma.transfer.findMany({
 		where: {
 			teamId: +req.params.id,
 			weekId,
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	})
 	rep.send({ team: { ...team, freeHit: 0, bank: 0, tripleCaptain: 0, wildCard: 0 }, players, transfers: transfers });
 }
@@ -159,27 +155,23 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 					weekId: +req.params.weekId,
 				}
 			}
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	const team = await prisma.team.findUnique({
 		where: {
 			id: +req.params.id,
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	const deadlineWeek = await prisma.week.findFirst({
 		where: {
 			id: +req.params.weekId
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	const transfers = await prisma.transfer.findMany({
 		where: {
 			teamId: +req.params.id,
 			weekId: +req.params.weekId,
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	const weeklyData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND starting = 1 GROUP BY "teamId" ORDER BY rank DESC`;
 	const globalData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId" ORDER BY rank DESC`;

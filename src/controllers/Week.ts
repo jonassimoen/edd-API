@@ -5,8 +5,7 @@ export const GetWeeksHandler = async (req: any, rep: any) => {
 	const weeks = await prisma.week.findMany({
 		orderBy: {
 			id: 'asc'
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	rep.send(weeks);
 }
@@ -15,8 +14,7 @@ export const GetWeekHandler = async (req: any, rep: any) => {
 	const week = await prisma.week.findUnique({
 		where: {
 			id: +req.params.id
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	rep.send(week);
 }
@@ -55,8 +53,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 		by: ['playerId'],
 		_sum: {
 			points: true,
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 
 	const teamPoints = await prisma.selection.groupBy({
@@ -67,8 +64,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 		by: ['teamId'],
 		_sum: {
 			points: true
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 
 	const teamsWithSelections = await prisma.team.findMany({
@@ -86,8 +82,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 					}
 				}
 			}
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	try {
 		await prisma.$transaction(async (prisma) => {
@@ -193,8 +188,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 	const weeks = await prisma.week.findMany({
 		orderBy: {
 			id: 'asc'
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	const deadlineWeek = await prisma.week.findFirst({
 		where: {
@@ -204,8 +198,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 		},
 		orderBy: {
 			deadlineDate: 'asc',
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	const displayWeek = await prisma.week.findFirst({
 		where: {
@@ -215,8 +208,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 		},
 		orderBy: {
 			deadlineDate: 'desc'
-		},
-		cacheStrategy: { ttl: 60 },
+		}
 	});
 	rep.send({
 		deadlineInfo: {

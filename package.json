@@ -16,8 +16,7 @@
     "@fastify/cors": "^8.2.1",
     "@fastify/static": "^6.10.2",
     "@netlify/functions": "^2.3.0",
-    "@prisma/client": "^5.8.1",
-    "@prisma/extension-accelerate": "^0.6.2",
+    "@prisma/client": "^5.6.0",
     "@types/express": "^4.17.20",
     "aws-lambda-fastify": "^2.2.0",
     "axios": "^1.4.0",
@@ -28,7 +27,7 @@
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
     "module-alias": "^2.2.3",
-    "prisma": "^5.8.1",
+    "prisma": "^5.6.0",
     "qs": "^6.11.2",
     "serverless-http": "^3.2.0"
   },

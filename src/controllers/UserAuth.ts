@@ -27,8 +27,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
 		let user = await prisma.user.findUnique({
 			where: {
 				email: googleUserInfo.email
-			},
-			cacheStrategy: { ttl: 60 },
+			}
 		});
 
 		let firstSignIn = false;
