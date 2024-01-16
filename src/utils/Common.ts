@@ -9,7 +9,8 @@ export const upcomingWeekId = async () => {
 				},
 				orderBy: {
 						deadlineDate: 'asc',
-				}
+				},
+				cacheStrategy: { ttl: 60 },
 		});
 		return (week && week.id) || 0;
 }
@@ -19,7 +20,8 @@ export const finalWeekId = async () => {
 				orderBy: {
 						deadlineDate: 'desc'
 				},
-				take: 1
+				take: 1,
+				cacheStrategy: { ttl: 60 },
 		});
 
 		return (week && week.id) || 0;

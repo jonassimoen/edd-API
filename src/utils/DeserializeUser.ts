@@ -12,6 +12,7 @@ export const reIssueAccessToken = async ({ refreshToken }: { refreshToken: strin
 		where: {
 			id: get(decoded, "id"),
 		},
+		cacheStrategy: { ttl: 60 },
 	});
 
 	if (!user ) return false;

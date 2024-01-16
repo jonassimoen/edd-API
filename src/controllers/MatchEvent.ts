@@ -10,7 +10,8 @@ export const GetMatchEventsHandler = async (req: any, rep: any) => {
 				},
 				include: {
 						player: true
-				}
+				},
+				cacheStrategy: { ttl: 60 },
 		});
 		rep.send(events);
 }

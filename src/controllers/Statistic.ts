@@ -19,6 +19,7 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			},
 			club: true
 		},
+		cacheStrategy: { ttl: 60 },
 	});
 
 	const allStatsPlayers = players.map((player: any) => {
@@ -89,7 +90,8 @@ export const GetMatchStatisticsHandler = async (req: any, rep: any) => {
 	const stats = await prisma.statistic.findMany({
 		where: {
 			matchId: +req.params.matchId
-		}
+		},
+		cacheStrategy: { ttl: 60 },
 	});
 	rep.send(stats);
 }
