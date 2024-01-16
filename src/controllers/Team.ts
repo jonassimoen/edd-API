@@ -132,6 +132,14 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 }
 
 export const GetPointsTeamHandler = async (req: any, rep: any) => {
+	const team = await prisma.team.findUnique({
+		where: {
+			id: +req.params.id,
+		}
+	});
+	if(!team) {
+		rep.status(404);
+	}
 	const players = await prisma.player.findMany({
 		include: {
 			selections: {
@@ -155,11 +163,6 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 					weekId: +req.params.weekId,
 				}
 			}
-		}
-	});
-	const team = await prisma.team.findUnique({
-		where: {
-			id: +req.params.id,
 		}
 	});
 	const deadlineWeek = await prisma.week.findFirst({
