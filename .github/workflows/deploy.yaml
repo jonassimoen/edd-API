@@ -9,15 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_OPTIONS: --max_old_space_size=1536
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      EXTERNAL_API_KEY: ${{ secrets.EXTERNAL_API_KEY }}
-      OAUTH_GOOGLE_CLIENT_ID: ${{ secrets.OAUTH_GOOGLE_CLIENT_ID }}
-      OAUTH_GOOGLE_CLIENT_SECRET: ${{ secrets.OAUTH_GOOGLE_CLIENT_SECRET }}
-      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-      PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
       
     steps:      
-      - name: SSH and deploy node app
+      - name: SSH and Deploy Node app
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
