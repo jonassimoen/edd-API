@@ -277,6 +277,9 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 	if (res.status != 200 || !res.data || (Array.isArray(res.data.errors) && (res.data.errors.length > 0)) || Object.keys(res.data.errors).length !== 0) {
 		throw new HttpError(Object.values(res.data.errors).reduce((s, v) => `${s}${v} `, '') as string, 429)
 	}
+	if(res.data.response?.length === 0) {
+		throw new HttpError("No stats yet",404);
+	}
 	const converted = res.data.response.map((resp: any) => {
 		return resp.players.map((player: any) => {
 			const stats = player.statistics[0];
@@ -314,6 +317,9 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 			})
 		});
 	});
+
+	console.log("converted 0", converted[0]);
+	console.log("converted 1", converted[1]);
 
 	const convertedToSingleTeam = converted[0].concat(converted[1]);
 
