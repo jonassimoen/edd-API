@@ -57,14 +57,14 @@ export const calculatePoints = (playerStat: Statistic, positionId: number): numb
 	let tempPoints = 0;
 
 	tempPoints += playerStat.minutesPlayed > 60 ? PPS.PLAYED_MORE_THAN_60_MIN[positionId] : (playerStat.minutesPlayed > 0) ? PPS.PLAYED_LESS_THAN_60_MIN[positionId] : 0;
-	tempPoints += playerStat.goals * PPS.GOAL[positionId];
-	tempPoints += playerStat.assists * PPS.ASSIST[positionId];
-	tempPoints += playerStat.penaltyMissed * PPS.PENALTY_MISS[positionId];
-	tempPoints += playerStat.penaltySaved * PPS.PENALTY_SAVE[positionId];
+	tempPoints += (playerStat.goals || 0) * PPS.GOAL[positionId];
+	tempPoints += (playerStat.assists || 0) * PPS.ASSIST[positionId];
+	tempPoints += (playerStat.penaltyMissed || 0) * PPS.PENALTY_MISS[positionId];
+	tempPoints += (playerStat.penaltySaved || 0) * PPS.PENALTY_SAVE[positionId];
 	tempPoints += playerStat.motm ? PPS.MOTM[positionId] : 0;
 	tempPoints += playerStat.yellow ? PPS.YELLOW[positionId] : 0;
 	tempPoints += playerStat.red ? PPS.RED[positionId] : 0;
-	tempPoints += Math.floor(playerStat.saves / 2) * PPS.SAVES_PER_2[positionId];
+	tempPoints += (Math.floor(playerStat.saves / 2) || 0) * PPS.SAVES_PER_2[positionId];
 	// tempPoints += playerStat.ownGoal * PPS.OWN_GOAL[positionId];
 	// tempPoints += Math.floor(playerStat.goalsAgainst / 2) * PPS.CONCEDED_2[positionId];
 	// tempPoints += playerStat.goalsAgainst === 0 ? PPS.CLEAN_SHEET[positionId] : 0;
