@@ -125,7 +125,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const playersWithCalculatedPoints = req.body.stats.map((stat: any) => {
 			const player = playersWithPositionIds.find((player: any) => player.id === stat.playerId);
-			const calculatedPoints = calculatePoints(stat, player!.positionId || 0);
+			const calculatedPoints = calculatePoints(stat, (player?.clubId === match?.homeId ? match.awayScore : match.homeScore) || 0, player!.positionId || 0);
 			return ({
 				...stat,
 				clubId: player!.clubId,
