@@ -57,25 +57,42 @@ const PPS = {
 	INTERCEPTIONS_PER_7: [0, 2, 2, 2, 2],
 }
 
-export const calculatePoints = (playerStat: Statistic, goalsOpponent: number, positionId: number): number => {
+export const calculatePoints = (playerStat: Statistic, positionId: number): number => {
 	let tempPoints = 0;
 
+	// Minutes played
 	tempPoints += playerStat.minutesPlayed > 60 ? PPS.PLAYED_MORE_THAN_60_MIN[positionId] : (playerStat.minutesPlayed > 0) ? PPS.PLAYED_LESS_THAN_60_MIN[positionId] : 0;
+	// Goals
 	tempPoints += (playerStat.goals || 0) * PPS.GOAL[positionId];
+	// Assists
 	tempPoints += (playerStat.assists || 0) * PPS.ASSIST[positionId];
+	// Penalty missed
 	tempPoints += (playerStat.penaltyMissed || 0) * PPS.PENALTY_MISS[positionId];
+	// Penalty saved
 	tempPoints += (playerStat.penaltySaved || 0) * PPS.PENALTY_SAVE[positionId];
+	// Man of the Match
 	tempPoints += playerStat.motm ? PPS.MOTM[positionId] : 0;
+	// Yellow card
 	tempPoints += playerStat.yellow ? PPS.YELLOW[positionId] : 0;
+	// Red card
 	tempPoints += playerStat.red ? PPS.RED[positionId] : 0;
+	// Saves (per 2)
 	tempPoints += (Math.floor(playerStat.saves / 2) || 0) * PPS.SAVES_PER_2[positionId];
-	tempPoints += (Math.floor(goalsOpponent / 2) || 0) * PPS.CONCEDED_2[positionId];
-	tempPoints += (goalsOpponent || 0 ) === 0 ? PPS.CLEAN_SHEET[positionId] : 0;
+	// Goals against
+	tempPoints += (Math.floor(playerStat.goalsAgainst / 2) || 0) * PPS.CONCEDED_2[positionId];
+	// Clean sheet
+	tempPoints += (playerStat.goalsAgainst || 0 ) === 0 ? PPS.CLEAN_SHEET[positionId] : 0;
+	// Passing accuracy above 85%
 	tempPoints += playerStat.totalPasses !== 0 && (playerStat.accuratePasses / playerStat.totalPasses > 0.85) ? PPS.PASS_ACCURACY_MORE_85[positionId] : 0;
+	// Key passes (per 2)
 	tempPoints += (Math.floor(playerStat.keyPasses / 2) || 0) * PPS.KEY_PASSES_PER_2[positionId];
+	// Succesfull dribbles (per 5) 
 	tempPoints += (Math.floor(playerStat.dribblesSuccess / 5) || 0) * PPS.DRIBBLES_SUCCESS_PER_5[positionId];
-	tempPoints += (playerStat.duelsWon > playerStat.duelsTotal - playerStat.duelsWon) ? PPS.PASS_ACCURACY_MORE_85[positionId] : 0;
+	// More duels won than lost
+	tempPoints += (playerStat.duelsWon > playerStat.duelsTotal - playerStat.duelsWon) ? PPS.DUELS_WON_MORE[positionId] : 0;
+	// Commited fouls (per 3)
 	tempPoints += (Math.floor(playerStat.foulsCommited / 3) || 0) * PPS.FOULS_COMMITED_PER_3[positionId];
+	// Interceptions (per 7)
 	tempPoints += (Math.floor(playerStat.interceptions / 7) || 0) * PPS.INTERCEPTIONS_PER_7[positionId];
 
 	return tempPoints;

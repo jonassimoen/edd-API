@@ -164,6 +164,7 @@ export const MatchStatisticPutSchema = {
 					penaltyMissed: { type: 'number' },
 					duelsWon: { type: 'number' },
 					duelsTotal: { type: 'number' },
+					goalsAginst: { type: 'number' },
 					red: { type: 'boolean' },
 					yellow: { type: 'boolean' },
 					motm: { type: 'boolean' },

@@ -125,7 +125,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const playersWithCalculatedPoints = req.body.stats.map((stat: any) => {
 			const player = playersWithPositionIds.find((player: any) => player.id === stat.playerId);
-			const calculatedPoints = calculatePoints(stat, (player?.clubId === match?.homeId ? match.awayScore : match.homeScore) || 0, player!.positionId || 0);
+			const calculatedPoints = calculatePoints(stat, player!.positionId || 0);
 			return ({
 				...stat,
 				clubId: player!.clubId,
@@ -148,7 +148,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 						update: {
 							players: {
 								update: homeP.map((stat: ExtendedStat) => {
-									const reducedStat = pick(stat, ["minutesPlayed", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									const reducedStat = pick(stat, ["minutesPlayed", "goalsAgainst", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
 									return ({
 										where: {
 											id: stat.playerId,
@@ -195,7 +195,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 						update: {
 							players: {
 								update: awayP.map((stat: ExtendedStat) => {
-									const reducedStat = pick(stat, ["minutesPlayed", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									const reducedStat = pick(stat, ["minutesPlayed", "goalsAgainst", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
 									return ({
 										where: {
 											id: stat.playerId,
