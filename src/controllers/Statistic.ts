@@ -318,9 +318,6 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 	});
 
-	console.log("converted 0", converted[0]);
-	console.log("converted 1", converted[1]);
-
 	const convertedToSingleTeam = converted[0].concat(converted[1]);
 
 	const matchUpdate = await prisma.match.update({

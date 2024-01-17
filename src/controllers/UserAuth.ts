@@ -52,6 +52,6 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
 
 		// rep.send(googleUserInfo)
 	} catch (err) {
-		console.log(err)
+		req.log.error(err);
 	}
 }

@@ -179,7 +179,6 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 	const weeklyData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND starting = 1 GROUP BY "teamId" ORDER BY rank DESC`;
 	const globalData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points)) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId" ORDER BY rank DESC`;
 	
-	console.log(weeklyData);
 	rep.send({
 		players,
 		team: {
