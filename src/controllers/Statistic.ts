@@ -130,7 +130,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 			return ({
 				...stat,
 				clubId: player!.clubId,
-				minutesPlayed: Math.min((stat.out - stat.in) || 0, 90),
+				minutesPlayed: Math.min(90, stat.out) - stat.in || 0,
 				calculatedPoints,
 			})
 		});
