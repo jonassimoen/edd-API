@@ -80,6 +80,8 @@ model Statistic {
   teamPoints Int @default(0)
   points     Int @default(0)
 
+  in                Int @default(0)
+  out               Int @default(0)
   minutesPlayed     Int @default(0)
   goals             Int @default(0)
   assists           Int @default(0)
@@ -106,8 +108,8 @@ model Statistic {
   duelsTotal        Int @default(0)
   goalsAgainst      Int @default(0)
 
-  red      Boolean @default(false)
-  yellow   Boolean @default(false)
+  red      Int? 
+  yellow   Int?
   motm     Boolean @default(false)
   starting Boolean @default(false)
 
@@ -152,7 +154,7 @@ model Team {
 model Week {
   id           Int         @id @default(autoincrement())
   deadlineDate DateTime    @db.Timestamptz()
-  name String?
+  name         String?
   Team         Team[]
   Match        Match[]
   validated    Boolean     @default(false)

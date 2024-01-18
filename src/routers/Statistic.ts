@@ -1,7 +1,6 @@
-import { PostMatchStartingHandler } from "../controllers/MatchEvent";
-import { GetMatchStatisticsHandler, PutMatchStatisticHandler, PostMatchStatisticsHandler, DeleteMatchStatisticHandler, GetPlayerStatisticsHandler, ImportMatchStatisticHandler } from "../controllers/Statistic";
+import { GetMatchStatisticsHandler, PutMatchStatisticHandler, DeleteMatchStatisticHandler, GetPlayerStatisticsHandler, ImportMatchStatisticHandler } from "../controllers/Statistic";
 import { RequireUser } from "../middleware/RequireUser";
-import { MatchStartingPostSchema, MatchStatisticPostSchema, MatchStatisticPutSchema } from "../types/body-schema";
+import { MatchStatisticPutSchema } from "../types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicMatchStatisticRouter: FastifyPluginAsync = async server => {
@@ -30,16 +29,6 @@ export const AdminMatchStatisticRouter: FastifyPluginAsync = async server => {
 				handler: PutMatchStatisticHandler,
 				schema: {
 						body: MatchStatisticPutSchema
-				}
-		});
-
-		server.route({
-				method: 'POST',
-				url: '',
-				preHandler: RequireUser,
-				handler: PostMatchStatisticsHandler,
-				schema: {
-						body: MatchStatisticPostSchema
 				}
 		});
 

@@ -77,6 +77,7 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			playerValue: player.value,
 			positionId: player.positionId,
 			...sumStats,
+			// refactor: to mapping to get correct accuracy
 			statShotsAccuracy: sumStats.statShots ? ((sumStats.statShotsOT / sumStats.statShots) || 0).toFixed(2) : null,
 			statPassAccuracy: sumStats.statTotPass ? ((sumStats.statAccPass / sumStats.statTotPass) || 0).toFixed(2) : null,
 			statDribbleAccuracy: sumStats.statDribblesAttempted ? ((sumStats.statDribblesSuccess / sumStats.statDribblesAttempted) || 0).toFixed(2) : null,
@@ -129,6 +130,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 			return ({
 				...stat,
 				clubId: player!.clubId,
+				minutesPlayed: Math.min((stat.out - stat.in) || 0, 90),
 				calculatedPoints,
 			})
 		});
@@ -148,7 +150,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 						update: {
 							players: {
 								update: homeP.map((stat: ExtendedStat) => {
-									const reducedStat = pick(stat, ["minutesPlayed", "goalsAgainst", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									const reducedStat = pick(stat, ["minutesPlayed", "in", "out", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									const goalsAgainst = req.body.goalMinutes.away.filter((gm: number) => reducedStat.in <= gm && reducedStat.out >= gm).length;
 									return ({
 										where: {
 											id: stat.playerId,
@@ -176,11 +179,13 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 													},
 													create: {
 														...reducedStat,
+														goalsAgainst,
 														matchId: +req.params.matchId,
 														points: stat.calculatedPoints,
 													},
 													update: {
 														...reducedStat,
+														goalsAgainst,
 														points: stat.calculatedPoints,
 													}
 												}
@@ -195,7 +200,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 						update: {
 							players: {
 								update: awayP.map((stat: ExtendedStat) => {
-									const reducedStat = pick(stat, ["minutesPlayed", "goalsAgainst", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									const reducedStat = pick(stat, ["minutesPlayed", "in", "out", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
+									const goalsAgainst = req.body.goalMinutes.away.filter((gm: number) => reducedStat.in <= gm && reducedStat.out >= gm).length;
 									return ({
 										where: {
 											id: stat.playerId,
@@ -223,11 +229,13 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 													},
 													create: {
 														...reducedStat,
+														goalsAgainst,
 														matchId: +req.params.matchId,
 														points: stat.calculatedPoints,
 													},
 													update: {
 														...reducedStat,
+														goalsAgainst,
 														points: stat.calculatedPoints,
 													}
 												}
