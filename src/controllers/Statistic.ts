@@ -201,7 +201,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 							players: {
 								update: awayP.map((stat: ExtendedStat) => {
 									const reducedStat = pick(stat, ["minutesPlayed", "in", "out", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "red", "yellow", "motm", "starting"]);
-									const goalsAgainst = req.body.goalMinutes.away.filter((gm: number) => reducedStat.in <= gm && reducedStat.out >= gm).length;
+									const goalsAgainst = req.body.goalMinutes.home.filter((gm: number) => reducedStat.in <= gm && reducedStat.out >= gm).length;
 									return ({
 										where: {
 											id: stat.playerId,
