@@ -81,7 +81,7 @@ export const calculatePoints = (playerStat: Statistic, positionId: number): numb
 	// Goals against
 	tempPoints += (Math.floor(playerStat.goalsAgainst / 2) || 0) * PPS.CONCEDED_2[positionId];
 	// Clean sheet
-	tempPoints += (playerStat.goalsAgainst || 0 ) === 0 ? PPS.CLEAN_SHEET[positionId] : 0;
+	tempPoints += (playerStat.minutesPlayed >= 60 && (playerStat.goalsAgainst || 0 ) === 0) ? PPS.CLEAN_SHEET[positionId] : 0;
 	// Passing accuracy above 85%
 	tempPoints += playerStat.totalPasses !== 0 && (playerStat.accuratePasses / playerStat.totalPasses > 0.85) ? PPS.PASS_ACCURACY_MORE_85[positionId] : 0;
 	// Key passes (per 2)
