@@ -8,6 +8,8 @@ import dotenv from "dotenv";
 import { deserializeUser } from "../src/utils/DeserializeUser";
 import fastifyStatic from "@fastify/static";
 import path from "path";
+import _default from "fastify-metrics";
+import { prisma } from "../src/db/client";
 dotenv.config();
 
 export const server = fastify({
@@ -30,6 +32,8 @@ server.register(cookies, {
   hook: "onRequest",
 });
 
+server.register(_default);
+
 server.register(fastifyStatic, {
   root: path.join(__dirname, "../static"),
   prefix: "/api/static/",
@@ -43,6 +47,9 @@ server.register(AdminRouter, { prefix: "/api" });
 server.get("/ping", (req: any, res: any) => {
   res.status(200).send();
 });
+server.get("/metrics/prisma", async (req: any, res: any) => {
+  res.send(await prisma.$metrics.prometheus());
+})
 
 server.setErrorHandler((err, req, rep) => {
   if (err instanceof HttpError) {
@@ -60,7 +67,7 @@ server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, addr
 		console.error(err);
 		process.exit(1);
 	}
-	console.log(`Server listening at ${address}`);
+	console.log(`Server listening at ${address}, environment: ${process.env.ENV}`);
 });
 
 export default async (req: any, res: any) => {
