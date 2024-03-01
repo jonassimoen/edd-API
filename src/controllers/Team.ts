@@ -270,6 +270,17 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 
 	if (transfers) {
+		const alreadyPerformedTransfers = await prisma.transfer.findMany({
+			where: {
+				teamId: +req.params.id,
+				weekId,
+			}
+		});
+
+		if(process.env.MAX_TRANSFERS && (transfers.length + alreadyPerformedTransfers.length) > +process.env.MAX_TRANSFERS) {
+			rep.status(403).send({ msg: "Whoaaa, too much transfers!" });
+			return;
+		}
 		const transferCreateInput = transfers.map((transfer: any) => {
 			return {
 				teamId: +req.params.id,
