@@ -19,9 +19,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /var/www/html/fantasy-api.simoen.tech
-            rm yarn.lock package-lock.json
+            sudo -i
+            cd /var/www/api.dreamdraft.be
             git pull origin master
             yarn install
             yarn build
-            pm2 restart edd-API --update-env
+            pm2 restart api --update-env
+            exit
