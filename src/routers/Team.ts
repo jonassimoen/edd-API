@@ -8,7 +8,7 @@ export const TeamRouter: FastifyPluginAsync = async server => {
 		server.route({
 				method: 'POST',
 				url: '/add',
-				preHandler: [RequireUser, RequireTeamOwner],
+				preHandler: RequireUser,
 				handler: PostAddTeamHandler,
 				schema: {
 						body: AddTeamSchema
