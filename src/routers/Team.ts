@@ -1,7 +1,7 @@
 import { RequireTeamOwner } from "../middleware/RequireTeamOwner";
 import { PostAddTeamHandler, PostCopyTeamHandler, DeleteDropTeamHandler, GetTeamHandler, GetPointsTeamHandler, PostBoosterTeamHandler, PostEditTeamHandler, PostSelectionsTeamHandler, PostTransfersTeamHandler, PostResetTransfersTeamHandler, PostBadgeHandler, GetRankingHandler } from "../controllers/Team";
 import { RequireUser } from "../middleware/RequireUser";
-import { AddTeamSchema, TransfersTeamSchema } from "../types/body-schema";
+import { AddBoosterSchema, AddTeamSchema, TransfersTeamSchema } from "../types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const TeamRouter: FastifyPluginAsync = async server => {
@@ -47,7 +47,8 @@ export const TeamRouter: FastifyPluginAsync = async server => {
 				method: 'POST',
 				url: '/:id/booster',
 				preHandler: [RequireUser, RequireTeamOwner],
-				handler: PostBoosterTeamHandler
+				handler: PostBoosterTeamHandler,
+				schema: AddBoosterSchema
 		});
 
 		server.route({

@@ -18,6 +18,16 @@ export const AddTeamSchema = {
     },
   },
 };
+export const AddBoosterSchema = {
+  body: {
+    type: "object",
+    properties: {
+      type: {
+        type: "string",
+      }
+    }
+  },
+};
 
 export const TransfersTeamSchema = {
   body: {

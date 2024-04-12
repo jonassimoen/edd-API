@@ -235,7 +235,27 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 }
 
 export const PostBoosterTeamHandler = async (req: any, rep: any) => {
+	const canBeUsed = await prisma.team.count({
+		where: {
+			id: +req.params.id,
+			[req.body.type]: null
+		}
+	})
 
+	if(!canBeUsed)
+		throw new HttpError("Booster already used", 403)
+
+	console.log(await upcomingWeekId())
+	prisma.team.update({
+		data: {
+			[req.body.type]: await upcomingWeekId()
+		},
+		where: {
+			id: +req.params.id
+		}
+	})
+	.then(() => rep.send({"message":"Booster activated successfully."}))
+	.catch(() => new HttpError("Booster not activated."))
 }
 
 export const PostNameTeamHandler = async (req: any, rep: any) => {

@@ -145,6 +145,12 @@ model Team {
   value   Int
   weekId  Int?
 
+  // Boosters
+  tripleCaptain Int?
+  viceVictory Int?
+  superSubs Int?
+
+
   selections Selection[]
 
   user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
