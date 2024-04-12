@@ -48,7 +48,7 @@ server.get("/ping", (req: any, res: any) => {
   res.status(200).send();
 });
 server.get("/metrics/prisma", async (req: any, res: any) => {
-  res.send(await prisma.$metrics.prometheus());
+  res.send(/*await prisma.$metrics.prometheus()*/);
 })
 
 server.setErrorHandler((err, req, rep) => {

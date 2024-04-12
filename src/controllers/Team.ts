@@ -84,6 +84,10 @@ export const DeleteDropTeamHandler = async (req: any, rep: any) => {
 export const GetTeamHandler = async (req: any, rep: any) => {
 	const weekId = await upcomingWeekId();
 	const playersWithMultipleSelections = await prisma.player.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			selections: {
 				some: {
@@ -114,6 +118,10 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 	})).sort((p1, p2) => (p2.selection.starting !== p1.selection.starting) ? (p2.selection.starting - p1.selection.starting) : ((p1.positionId || 0) - (p2.positionId || 0)));
 
 	const team = await prisma.team.findFirst({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			id: +req.params.id
 		},
@@ -123,6 +131,10 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 	});
 
 	const transfers = await prisma.transfer.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			teamId: +req.params.id,
 			weekId,
@@ -133,6 +145,10 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 
 export const GetPointsTeamHandler = async (req: any, rep: any) => {
 	const team = await prisma.team.findUnique({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			id: +req.params.id,
 		}
@@ -141,6 +157,10 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 		rep.status(404);
 	}
 	const players = await prisma.player.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		include: {
 			selections: {
 				where: {
@@ -166,11 +186,19 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 		}
 	});
 	const deadlineWeek = await prisma.week.findFirst({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			id: +req.params.weekId
 		}
 	});
 	const transfers = await prisma.transfer.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			teamId: +req.params.id,
 			weekId: +req.params.weekId,

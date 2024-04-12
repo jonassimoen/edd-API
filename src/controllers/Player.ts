@@ -7,6 +7,10 @@ import HttpError from "../utils/HttpError";
 
 export const GetPlayersHandler = async (req: any, rep: any) => {
   const players = await prisma.player.findMany({
+		cacheStrategy: {
+			ttl: 300,
+			swr: 600,
+		},
     orderBy: [{ value: "desc" }, { clubId: "asc" }, { id: "asc" }],
   });
   rep.send(players);

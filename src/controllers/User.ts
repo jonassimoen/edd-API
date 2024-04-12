@@ -2,6 +2,10 @@ import { prisma } from "../db/client";
 
 export const GetProfileHandler = async (req: any, rep: any) => {
 		const user = await prisma.user.findUnique({
+				cacheStrategy: {
+					ttl: 30,
+					swr: 60,
+				},
 				where: {
 						id: req.user.id
 				}
@@ -22,6 +26,10 @@ export const PutUserHandler = async(req: any, rep: any) => {
 
 export const GetTeamsHandler = async (req: any, rep: any) => {
 		const user = await prisma.user.findUnique({
+				cacheStrategy: {
+					ttl: 30,
+					swr: 60,
+				},
 				where: {
 						id: req.user.id
 				},
@@ -32,6 +40,10 @@ export const GetTeamsHandler = async (req: any, rep: any) => {
 				}
 		});
 		const teams = await prisma.team.findMany({
+				cacheStrategy: {
+					ttl: 30,
+					swr: 60,
+				},
 				where: {
 						user: {
 								id: req.user.id

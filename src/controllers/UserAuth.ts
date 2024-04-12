@@ -25,6 +25,10 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
 		const googleUserInfo = await getGoogleUserInfo({ id_token, access_token });
 		// user has no account yet
 		let user = await prisma.user.findUnique({
+			cacheStrategy: {
+				ttl: 300,
+				swr: 600,
+			},
 			where: {
 				email: googleUserInfo.email
 			}

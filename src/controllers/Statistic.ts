@@ -7,6 +7,10 @@ import { pick } from "lodash";
 
 export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 	const players = await prisma.player.findMany({
+		cacheStrategy: {
+			ttl: 300,
+			swr: 120,
+		},
 		include: {
 			stats: {
 				where: {
@@ -88,6 +92,10 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 
 export const GetMatchStatisticsHandler = async (req: any, rep: any) => {
 	const stats = await prisma.statistic.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			matchId: +req.params.matchId
 		}

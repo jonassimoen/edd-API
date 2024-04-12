@@ -3,6 +3,10 @@ import { ProcessState } from "@prisma/client";
 
 export const GetWeeksHandler = async (req: any, rep: any) => {
 	const weeks = await prisma.week.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		orderBy: {
 			id: 'asc'
 		}
@@ -12,6 +16,10 @@ export const GetWeeksHandler = async (req: any, rep: any) => {
 
 export const GetWeekHandler = async (req: any, rep: any) => {
 	const week = await prisma.week.findUnique({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			id: +req.params.id
 		}
@@ -45,6 +53,10 @@ export const PostWeeksHandler = async (req: any, rep: any) => {
 
 export const PostWeekValidateHandler = async (req: any, rep: any) => {
 	const statsSumPoints = await prisma.statistic.groupBy({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			match: {
 				weekId: +req.params.id
@@ -57,6 +69,10 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 	});
 
 	const teamPoints = await prisma.selection.groupBy({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			weekId: +req.params.id,
 			starting: 1,
@@ -68,6 +84,10 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 	});
 
 	const teamsWithSelections = await prisma.team.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		include: {
 			selections: {
 				where: {
@@ -186,11 +206,19 @@ export const DeleteWeekHandler = async (req: any, rep: any) => {
 }
 export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 	const weeks = await prisma.week.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		orderBy: {
 			id: 'asc'
 		}
 	});
 	const deadlineWeek = await prisma.week.findFirst({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			deadlineDate: {
 				gt: new Date()
@@ -201,6 +229,10 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 		}
 	});
 	const displayWeek = await prisma.week.findFirst({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			deadlineDate: {
 				lt: deadlineWeek?.deadlineDate

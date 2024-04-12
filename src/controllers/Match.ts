@@ -4,6 +4,10 @@ import axios from "axios";
 
 export const GetMatchesHandler = async (req: any, rep: any) => {
 	const matches = await prisma.match.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		include: {
 			home: true,
 			away: true
@@ -17,6 +21,10 @@ export const GetMatchesHandler = async (req: any, rep: any) => {
 
 export const GetMatchHandler = async (req: any, rep: any) => {
 	const match = await prisma.match.findUnique({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
 		where: {
 			id: +req.params.id
 		},
