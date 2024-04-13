@@ -24,6 +24,9 @@ export const AddBoosterSchema = {
     properties: {
       type: {
         type: "string",
+      },
+      affectedPlayer: {
+        type: "string",
       }
     }
   },

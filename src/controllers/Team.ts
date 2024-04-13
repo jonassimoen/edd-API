@@ -108,6 +108,7 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 					value: true,
 					playerId: true,
 					weekId: true,
+					booster: true,
 				}
 			}
 		}
@@ -140,7 +141,7 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 			weekId,
 		}
 	})
-	rep.send({ team: { ...team, freeHit: 0, bank: 0, tripleCaptain: 0, wildCard: 0 }, players, transfers: transfers });
+	rep.send({ team: { ...team }, players, transfers: transfers });
 }
 
 export const GetPointsTeamHandler = async (req: any, rep: any) => {
@@ -163,6 +164,15 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 		},
 		include: {
 			selections: {
+				select: {
+					captain: true,
+					starting: true,
+					value: true,
+					playerId: true,
+					weekId: true,
+					booster: true,
+					played: true,
+				},
 				where: {
 					teamId: +req.params.id,
 					weekId: +req.params.weekId,
@@ -245,8 +255,7 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 	if(!canBeUsed)
 		throw new HttpError("Booster already used", 403)
 
-	console.log(await upcomingWeekId())
-	prisma.team.update({
+	await prisma.team.update({
 		data: {
 			[req.body.type]: await upcomingWeekId()
 		},
@@ -254,8 +263,7 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 			id: +req.params.id
 		}
 	})
-	.then(() => rep.send({"message":"Booster activated successfully."}))
-	.catch(() => new HttpError("Booster not activated."))
+	rep.send({"message":"Booster activated successfully."})
 }
 
 export const PostNameTeamHandler = async (req: any, rep: any) => {

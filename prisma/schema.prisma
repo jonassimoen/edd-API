@@ -25,6 +25,11 @@ enum MatchEventType {
   Starting
 }
 
+enum PlayerBoosterType {
+  HiddenGem
+  GoalRush
+}
+
 model User {
   id        Int     @id @default(autoincrement())
   firstName String
@@ -78,8 +83,8 @@ model Statistic {
   playerId Int
   matchId  Int
 
-  teamPoints Int @default(0)
-  points     Int @default(0)
+  teamPoints Float @default(0)
+  points     Float @default(0)
 
   in                Int @default(0)
   out               Int @default(0)
@@ -109,7 +114,7 @@ model Statistic {
   duelsTotal        Int @default(0)
   goalsAgainst      Int @default(0)
 
-  red      Int? 
+  red      Int?
   yellow   Int?
   motm     Boolean @default(false)
   starting Boolean @default(false)
@@ -135,21 +140,22 @@ model Team {
   // add extra info ?
   id      Int      @id @default(autoincrement())
   badge   String?
-  budget  Int
+  budget  Float
   created DateTime @db.Timestamptz()
   name    String
-  points  Int      @default(0)
+  points  Float    @default(0)
   rank    Int      @default(0)
   userId  Int
   valid   Boolean
-  value   Int
+  value   Float
   weekId  Int?
 
   // Boosters
   tripleCaptain Int?
-  viceVictory Int?
-  superSubs Int?
-
+  viceVictory   Int?
+  superSubs     Int?
+  hiddenGem     Int?
+  goalRush      Int?
 
   selections Selection[]
 
@@ -170,18 +176,19 @@ model Week {
 }
 
 model Selection {
-  id       Int    @id @default(autoincrement())
-  captain  Int    @default(0)
-  played   Int    @default(0)
-  points   Int    @default(0)
+  id       Int                @id @default(autoincrement())
+  captain  Int                @default(0)
+  played   Int                @default(0)
+  points   Float              @default(0)
   teamId   Int
   playerId Int
-  value    Int
-  starting Int    @default(0)
+  value    Float
+  starting Int                @default(0)
   weekId   Int
-  week     Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  booster  PlayerBoosterType?
+  week     Week               @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  player   Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  team     Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, teamId, weekId])
 }

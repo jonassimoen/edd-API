@@ -250,6 +250,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 					},
 				}
 			}),
+			// Captain has played
+			prisma.$queryRaw`CALL "processViceCaptainAndBoosters"(${match.weekId})`
 		]);
 
 		rep.send({ msg: `Statistics saved for Match with id ${match?.id}` });
