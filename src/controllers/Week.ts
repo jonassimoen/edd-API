@@ -249,6 +249,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 			displayWeek: displayWeek?.id || deadlineWeek?.id,
 			endWeek: weeks[weeks.length - 1].id,
 		},
-		weeks
+		weeks,
+		rft: (await prisma.refreshTime.findFirst())?.time
 	});
 }
