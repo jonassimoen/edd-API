@@ -250,7 +250,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 					},
 				}
 			}),
-			// Captain has played
+			// Captain - Vice Captain points multipliers (Triple Captain / Vice victory)
 			prisma.$queryRaw`CALL "processViceCaptainAndBoosters"(${match.weekId})`
 		]);
 
