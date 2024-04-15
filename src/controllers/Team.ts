@@ -172,6 +172,8 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 					weekId: true,
 					booster: true,
 					played: true,
+					endWinnerSelections: true,
+					points: true,
 				},
 				where: {
 					teamId: +req.params.id,

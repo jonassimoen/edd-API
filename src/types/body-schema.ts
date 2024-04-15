@@ -1,5 +1,14 @@
 import { MatchEventType } from "@prisma/client";
 
+export const GeneralClubWinnerSchema = {
+  body: {
+    type: "object",
+    properties: {
+      clubWinner: { type: "number" },
+    },
+  },
+};
+
 export const AddTeamSchema = {
   body: {
     type: "object",
@@ -18,6 +27,7 @@ export const AddTeamSchema = {
     },
   },
 };
+
 export const AddBoosterSchema = {
   body: {
     type: "object",

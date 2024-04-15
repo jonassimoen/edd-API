@@ -144,7 +144,6 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const homeP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.homeId).map((stat: any) => ({...stat, goalsAgainst: req.body.goalMinutes.away.filter((gm: number) => stat.in <= gm && stat.out >= gm).length}));
 		const awayP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.awayId).map((stat: any) => ({...stat, goalsAgainst: req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm && stat.out >= gm).length}));
-
 		await prisma.$transaction([
 			prisma.match.update({
 				where: {
