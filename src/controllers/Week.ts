@@ -244,8 +244,8 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 	});
 	rep.send({
 		deadlineInfo: {
-			deadlineDate: deadlineWeek?.deadlineDate,
-			deadlineWeek: deadlineWeek?.id,
+			deadlineDate: deadlineWeek?.deadlineDate || 0,
+			deadlineWeek: deadlineWeek?.id || 0,
 			displayWeek: displayWeek?.id || deadlineWeek?.id,
 			endWeek: weeks[weeks.length - 1].id,
 		},
