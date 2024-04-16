@@ -9,6 +9,7 @@ import { AdminMatchEventRouter, PublicMatchEventRouter } from './MatchEvent';
 import { AdminMatchStatisticRouter, PublicMatchStatisticRouter, PublicPlayerStatisticRouter } from './Statistic';
 import { AdminWeekRouter, PublicWeekRouter } from './Week';
 import { PublicPageRouter } from './Page';
+import { AdminGeneralRouter } from './Admin';
 
 export const PublicRouter: FastifyPluginAsync = async server => {
 		server.register(UserRouter, { prefix: '/user' });
@@ -25,6 +26,7 @@ export const PublicRouter: FastifyPluginAsync = async server => {
 
 export const AdminRouter: FastifyPluginAsync = async server => {
 		server.addHook("preHandler", requireAdmin)
+		server.register(AdminGeneralRouter)
 		server.register(AdminPlayerRouter, { prefix: '/players' })
 		server.register(AdminClubRouter, { prefix: '/clubs' })
 		server.register(AdminMatchRouter, { prefix: '/matches' })

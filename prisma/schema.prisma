@@ -126,10 +126,11 @@ model Statistic {
 }
 
 model Club {
-  id         Int    @id @default(autoincrement())
-  externalId Int    @unique
+  id         Int     @id @default(autoincrement())
+  externalId Int     @unique
   name       String
   short      String
+  winner     Boolean @default(false)
 
   players   Player[]
   HomeMatch Match[]  @relation("homeMatch")
@@ -185,6 +186,8 @@ model Selection {
   value    Float
   starting Int                @default(0)
   weekId   Int
+  endWinnerSelections Int @default(0)
+  
   booster  PlayerBoosterType?
   week     Week               @relation(fields: [weekId], references: [id], onDelete: Cascade)
   player   Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
