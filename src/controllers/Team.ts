@@ -247,22 +247,69 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 }
 
 export const PostBoosterTeamHandler = async (req: any, rep: any) => {
-	const canBeUsed = await prisma.team.count({
-		where: {
-			id: +req.params.id,
-			[req.body.type]: null
-		}
-	})
+	const boosterUnCC = req.body.type.charAt(0).toUpperCase() + req.body.type.slice(1);
+	const validBoosters = ["tripleCaptain","viceVictory","hiddenGem","goalRush"];
 
-	if(!canBeUsed)
-		throw new HttpError("Booster already used", 403)
+	if(!validBoosters.includes(req.body.type)) 
+		throw new HttpError("Invalid booster", 404)
 
-	await prisma.team.update({
-		data: {
-			[req.body.type]: await upcomingWeekId()
+	const isPlayerBooster = ["hiddenGem","goalRush"].includes(req.body.type);
+	const currentWeek = await upcomingWeekId();
+
+	const teamWithBoosters: { [key: string]: any } | null = await prisma.team.findFirst({
+		select: {
+			goalRush: true,
+			tripleCaptain: true,
+			hiddenGem: true,
+			viceVictory: true,
+			selections: {
+				select: {
+					playerId: true,
+					booster: true,
+				},
+				where: {
+					booster: {
+						not: null
+					},
+					weekId: currentWeek,
+				}
+			}
 		},
 		where: {
-			id: +req.params.id
+			id: +req.params.id,
+		}
+	});
+	
+	if(!teamWithBoosters)
+		throw new HttpError("No team found", 404)
+	if(teamWithBoosters[req.body.type])
+		throw new HttpError("Booster already used", 403)
+	if(teamWithBoosters.selections && teamWithBoosters.selections.length >= 2)
+		throw new HttpError("Already 2 boosters this week", 403)
+	
+	await prisma.$transaction(async (prisma) => {
+		await prisma.team.update({
+			data: {
+				[req.body.type]: currentWeek
+			},
+			where: {
+				id: +req.params.id
+			}
+		});
+
+		if(isPlayerBooster) {
+			await prisma.selection.update({
+				where: {
+					playerId_teamId_weekId: {
+						teamId: +req.params.id,
+						weekId: currentWeek,
+						playerId: req.body.playerId
+					}
+				},
+				data: {
+					booster: boosterUnCC
+				}
+			})
 		}
 	})
 	rep.send({"message":"Booster activated successfully."})
