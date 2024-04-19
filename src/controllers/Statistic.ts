@@ -6,6 +6,11 @@ import axios from "axios";
 import { pick } from "lodash";
 
 export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
+
+	const totalTeams = (await prisma.selection.groupBy({
+		by: ['teamId','weekId'],
+	})).length;
+	
 	const players = await prisma.player.findMany({
 		cacheStrategy: {
 			ttl: 300,
@@ -21,6 +26,7 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 					}
 				}
 			},
+			selections: true,
 			club: true
 		},
 	});
@@ -45,6 +51,8 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			statDribblesAttempted: sum.statDribblesAttempted + current.dribblesAttempted,
 			statDribblesSuccess: sum.statDribblesSuccess + current.dribblesSuccess,
 			statDribblesPast: sum.statDribblesPast + current.dribblesPast,
+			statConceeded: sum.statConceeded + current.goalsAgainst,
+			statCleanSheet: sum.statCleanSheet + (current.goalsAgainst == 0),
 			total: sum.total + current.points,
 		}),
 			{
@@ -66,6 +74,8 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 				statDribblesAttempted: 0,
 				statDribblesSuccess: 0,
 				statDribblesPast: 0,
+				statConceeded: 0,
+				statCleanSheet: 0,
 				total: 0,
 			}
 		);
@@ -82,8 +92,12 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			positionId: player.positionId,
 			...sumStats,
 			// refactor: to mapping to get correct accuracy
+			statInTeam: +(player.selections.length / totalTeams * 100),
+			statCaptain: +(player.selections.filter((s: any) => s.captain == 1).length / totalTeams * 100),
+			statViceCaptain: +(player.selections.filter((s: any) => s.captain == 2).length / totalTeams * 100),
 			statShotsAccuracy: sumStats.statShots ? ((sumStats.statShotsOT / sumStats.statShots) || 0).toFixed(2) : null,
 			statPassAccuracy: sumStats.statTotPass ? ((sumStats.statAccPass / sumStats.statTotPass) || 0).toFixed(2) : null,
+			statROI: sumStats.total / player.value,
 			statDribbleAccuracy: sumStats.statDribblesAttempted ? ((sumStats.statDribblesSuccess / sumStats.statDribblesAttempted) || 0).toFixed(2) : null,
 		};
 	}).sort((a: any, b: any) => b.total - a.total);

@@ -86,38 +86,59 @@ model Statistic {
   teamPoints Float @default(0)
   points     Float @default(0)
 
-  in                Int @default(0)
-  out               Int @default(0)
-  minutesPlayed     Int @default(0)
-  goals             Int @default(0)
-  assists           Int @default(0)
-  shots             Int @default(0)
-  shotsOnTarget     Int @default(0)
-  saves             Int @default(0)
-  keyPasses         Int @default(0)
-  accuratePasses    Int @default(0)
-  totalPasses       Int @default(0)
-  tackles           Int @default(0)
-  blocks            Int @default(0)
-  interceptions     Int @default(0)
-  dribblesAttempted Int @default(0)
-  dribblesSuccess   Int @default(0)
-  dribblesPast      Int @default(0)
-  foulsDrawn        Int @default(0)
-  foulsCommited     Int @default(0)
-  penaltySaved      Int @default(0)
-  penaltyCommited   Int @default(0)
-  penaltyWon        Int @default(0)
-  penaltyScored     Int @default(0)
-  penaltyMissed     Int @default(0)
-  duelsWon          Int @default(0)
-  duelsTotal        Int @default(0)
-  goalsAgainst      Int @default(0)
-
-  red      Int?
-  yellow   Int?
-  motm     Boolean @default(false)
-  starting Boolean @default(false)
+  // General - Play time
+  starting          Boolean @default(false)
+  in                Int     @default(0)
+  out               Int     @default(0)
+  minutesPlayed     Int     @default(0)
+  motm              Boolean @default(false)
+  // Important
+  goals             Int     @default(0)
+  assists           Int     @default(0)
+  red               Int?
+  yellow            Int?
+  // Goalkeeper
+  penaltySaved      Int     @default(0)
+  saves             Int     @default(0)
+  highClaims        Int     @default(0)
+  // Attacking
+  shots             Int     @default(0)
+  shotsOnTarget     Int     @default(0)
+  shotsBlocked      Int     @default(0)
+  shotsOffTarget    Int     @default(0)
+  // Passing
+  keyPasses         Int     @default(0)
+  accuratePasses    Int     @default(0)
+  totalPasses       Int     @default(0)
+  accurateCrosses   Int     @default(0)
+  totalCrosses      Int     @default(0)
+  // Defending
+  clearances        Int     @default(0)
+  blocks            Int     @default(0)
+  interceptions     Int     @default(0)
+  tackles           Int     @default(0)
+  // Dribbles
+  dribblesAttempted Int     @default(0)
+  dribblesSuccess   Int     @default(0)
+  dribblesPast      Int     @default(0)
+  // Fouls
+  foulsDrawn        Int     @default(0)
+  foulsCommited     Int     @default(0)
+  // Penalty's
+  penaltyCommited   Int     @default(0)
+  penaltyWon        Int     @default(0)
+  penaltyScored     Int     @default(0)
+  penaltyMissed     Int     @default(0)
+  // Duels
+  duelsTotal        Int     @default(0)
+  duelsWon          Int     @default(0)
+  aerialDuelsTotal  Int     @default(0)
+  aerialDuelsWon    Int     @default(0)
+  // Magic
+  errorLeadingGoal  Int     @default(0)
+  bigChancesCreated Int     @default(0)
+  bigChancesMissed  Int     @default(0)
+  goalsAgainst      Int     @default(0)
 
   match  Match  @relation(fields: [matchId], references: [id])
   player Player @relation(fields: [playerId], references: [id])
@@ -177,21 +198,21 @@ model Week {
 }
 
 model Selection {
-  id       Int                @id @default(autoincrement())
-  captain  Int                @default(0)
-  played   Int                @default(0)
-  points   Float              @default(0)
-  teamId   Int
-  playerId Int
-  value    Float
-  starting Int                @default(0)
-  weekId   Int
-  endWinnerSelections Int @default(0)
-  
-  booster  PlayerBoosterType?
-  week     Week               @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  player   Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  team     Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  id                  Int   @id @default(autoincrement())
+  captain             Int   @default(0)
+  played              Int   @default(0)
+  points              Float @default(0)
+  teamId              Int
+  playerId            Int
+  value               Float
+  starting            Int   @default(0)
+  weekId              Int
+  endWinnerSelections Int   @default(0)
+
+  booster PlayerBoosterType?
+  week    Week               @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  player  Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  team    Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, teamId, weekId])
 }
