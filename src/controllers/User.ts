@@ -1,4 +1,7 @@
 import { prisma } from "../db/client";
+export const LogoutHandler = async(req: any, rep: any) => {
+	rep.status(200).clearCookie('token').clearCookie('refreshToken').clearCookie('accessToken')
+}
 
 export const GetProfileHandler = async (req: any, rep: any) => {
 		const user = await prisma.user.findUnique({

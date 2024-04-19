@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
 import { GoogleAuthHandler } from "../controllers/UserAuth";
-import { GetProfileHandler, GetTeamsHandler, PutUserHandler } from "../controllers/User";
+import { GetProfileHandler, GetTeamsHandler, LogoutHandler, PutUserHandler } from "../controllers/User";
 import { RequireUser } from "../middleware/RequireUser";
 
 export const UserRouter: FastifyPluginAsync = async server => {
@@ -8,6 +8,12 @@ export const UserRouter: FastifyPluginAsync = async server => {
 				method: "GET",
 				url: '/oauth/google',
 				handler: GoogleAuthHandler
+		});
+
+		server.route({
+				method: "POST",
+				url: '/logout',
+				handler: LogoutHandler
 		});
 
 		server.route({
