@@ -52,7 +52,10 @@ export const PutPageHandler = async (req: any, rep: any) => {
 			translation: {
 				upsert: req.body.translation.map((tl: any) => ({
 					where: {
-						id: tl.id,
+						pageId_langCode: {
+							pageId: +req.params.id,
+							langCode: tl.langCode,
+						}
 					},
 					update: {
 						langCode: tl.langCode,
