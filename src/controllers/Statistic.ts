@@ -156,8 +156,18 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 				calculatedPoints,
 			})
 		});
-		const homeP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.homeId).map((stat: any) => ({...stat, goalsAgainst: req.body.goalMinutes.away.filter((gm: number) => stat.in <= gm && stat.out >= gm).length}));
-		const awayP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.awayId).map((stat: any) => ({...stat, goalsAgainst: req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm && stat.out >= gm).length}));
+		const homeP = playersWithCalculatedPoints
+			.filter((player: any) => player.clubId === match!.homeId)
+			.map((stat: any) => ({
+				...stat, 
+				goalsAgainst: stat.red ? req.body.goalMinutes.away.filter((gm: number) => stat.in <= gm).length : req.body.goalMinutes.away.filter((gm: number) => stat.in <= gm && stat.out >= gm).length
+			}));
+		const awayP = playersWithCalculatedPoints
+			.filter((player: any) => player.clubId === match!.awayId)
+			.map((stat: any) => ({
+				...stat, 
+				goalsAgainst: stat.red ? req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm).length : req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm && stat.out >= gm).length
+			}));
 		const subselection  = [
 			"starting", "in", "out", "minutesPlayed", "motm", 
 			"goals", "assists", "yellow", "red",
