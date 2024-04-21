@@ -3,7 +3,7 @@ import { prisma } from "../db/client"
 import { ProcessState, Statistic } from "@prisma/client";
 import HttpError from "../utils/HttpError";
 import axios from "axios";
-import { pick } from "lodash";
+import { pick, pickBy } from "lodash";
 
 export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 
@@ -158,7 +158,23 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const homeP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.homeId).map((stat: any) => ({...stat, goalsAgainst: req.body.goalMinutes.away.filter((gm: number) => stat.in <= gm && stat.out >= gm).length}));
 		const awayP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.awayId).map((stat: any) => ({...stat, goalsAgainst: req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm && stat.out >= gm).length}));
+		const subselection  = [
+			"starting", "in", "out", "minutesPlayed", "motm", 
+			"goals", "assists", "yellow", "red",
+			"penaltySaved", "saves", "highClaims",
+			"shotsBlocked", "shotsOnTarget", "shotsOffTarget",
+			"keyPasses", "accuratePasses", "totalPasses", "totalCrosses", "accurateCrosses", 
+			"clearances", "blocks", "interceptions", "tackles",
+			"dribblesAttempted", "dribblesSuccess", "dribblesPast",
+			"foulsDrawn", "foulsCommited",
+			"penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed",
+			"duelsTotal", "duelsWon", "aerialDuelsTotal", "aerialDuelsWon",
+			"errorLeadingGoal", "bigChancesCreated", "bigChancesMissed",
+			"goalsAgainst"
+		]
+		
 		await prisma.$transaction([
+			
 			prisma.match.update({
 				where: {
 					id: +req.params.matchId
@@ -171,7 +187,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 						update: {
 							players: {
 								update: homeP.map((stat: ExtendedStat) => {
-									const reducedStat = pick(stat, ["minutesPlayed", "in", "out", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "goalsAgainst", "red", "yellow", "motm", "starting"]);
+									const reducedStat = pick(pickBy(stat, (v, k) => (v !== null && v !== undefined)), subselection);
+									console.log(reducedStat);
 									return ({
 										where: {
 											id: stat.playerId,
@@ -185,7 +202,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 													},
 													data: {
 														points: stat.calculatedPoints,
-														played: reducedStat.minutesPlayed > 0 ? 1 : 0
+														played: +(reducedStat.minutesPlayed || 0) > 0 ? 1 : 0
 													}
 												}
 											},
@@ -218,7 +235,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 						update: {
 							players: {
 								update: awayP.map((stat: ExtendedStat) => {
-									const reducedStat = pick(stat, ["minutesPlayed", "in", "out", "goals", "assists", "shots", "shotsOnTarget", "saves", "keyPasses", "accuratePasses", "totalPasses", "tackles", "blocks", "interceptions", "dribblesAttempted", "dribblesSuccess", "dribblesPast", "foulsDrawn", "foulsCommited", "penaltySaved", "penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed", "duelsWon", "duelsTotal", "goalsAgainst", "red", "yellow", "motm", "starting"]);
+									const reducedStat = pick(pickBy(stat, (v, k) => (v !== null && v !== undefined)), subselection);
+									console.log(reducedStat);
 									return ({
 										where: {
 											id: stat.playerId,
@@ -232,7 +250,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 													},
 													data: {
 														points: stat.calculatedPoints,
-														played: reducedStat.minutesPlayed > 0 ? 1 : 0
+														played: +(reducedStat.minutesPlayed || 0) > 0 ? 1 : 0
 													}
 												}
 											},
@@ -286,6 +304,18 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 		}
 	});
 
+	const mapExternalInternalIds = await prisma.player.findMany({
+		select: {
+			id: true,
+			externalId: true
+		},
+		where: {
+			clubId: {
+				in: [match!.awayId || 0, match!.homeId || 0]
+			}
+		}
+	});
+
 	const res = await axios.request({
 		method: 'get',
 		url: 'https://v3.football.api-sports.io/fixtures/players',
@@ -307,10 +337,11 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 	}
 	const converted = res.data.response.map((resp: any) => {
 		return resp.players.map((player: any) => {
+			// console.log(player)
 			const stats = player.statistics[0];
 
 			return ({
-				playerId: player.player.id,
+				id: mapExternalInternalIds.find((p: any) => p.externalId == player.player.id)?.id,
 				minutesPlayed: +stats.games.minutes || 0,
 				starting: !(!!stats.games.substitute),
 				shots: +stats.shots.total || 0,

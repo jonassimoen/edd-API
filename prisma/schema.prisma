@@ -286,6 +286,8 @@ model Translation {
   title    String?
   pageId   Int
   page     Page    @relation(fields: [pageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([pageId, langCode])
 }
 
 model RefreshTime {
