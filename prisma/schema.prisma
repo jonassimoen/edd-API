@@ -47,6 +47,7 @@ model User {
   role      Int
 
   teams Team[]
+  Audit Audit[]
 }
 
 model Player {
@@ -294,6 +295,16 @@ model Translation {
 
 model RefreshTime {
   time DateTime @id @unique
+}
+
+model Audit {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  params    String
+  timestamp DateTime
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 // model WeeksOnTeams {

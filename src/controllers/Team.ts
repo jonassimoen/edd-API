@@ -44,25 +44,47 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 
 	const allWithValuesForAllRemainingWeeks = allWithValues.flatMap((p: any) => Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId).map(wId => ({ ...p, weekId: wId })));
 
-	const team = await prisma.team.create({
-		data: {
-			userId: req.user.id,
-			selections: {
-				createMany: {
-					data: allWithValuesForAllRemainingWeeks,
-				}
+	const [team, audit] = await prisma.$transaction([
+		prisma.team.create({
+			data: {
+				userId: req.user.id,
+				selections: {
+					createMany: {
+						data: allWithValuesForAllRemainingWeeks,
+					}
+				},
+				budget: budget,
+				value: totalValue,
+				valid: true,
+				created: new Date(Date.now()),
+				name: req.body.teamName
 			},
-			budget: budget,
-			value: totalValue,
-			valid: true,
-			created: new Date(Date.now()),
-			name: req.body.teamName
-		},
-		include: {
-			selections: true,
-			user: true,
-		}
-	});
+			include: {
+				selections: true,
+				user: true,
+			}
+		}),
+		prisma.audit.create({
+			data: {
+				userId: req.user.id,
+				action: 'POST_CREATE_UPDATE',
+				params: JSON.stringify({
+					userId: req.user.id,
+					selections: {
+						createMany: {
+							data: allWithValuesForAllRemainingWeeks,
+						}
+					},
+					budget: budget,
+					value: totalValue,
+					valid: true,
+					created: new Date(Date.now()),
+					name: req.body.teamName
+				}),
+				timestamp: new Date().toISOString(),
+			}
+		})
+	])
 	rep.send({
 		user: team.user,
 		team: {
@@ -311,6 +333,20 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 				}
 			})
 		}
+
+		await prisma.audit.create({
+			data: {
+				userId: req.user.id,
+				action: 'POST_PERFORM_BOOSTER',
+				params: JSON.stringify({
+					teamId: +req.params.id,
+					type: req.body.type,
+					weekId: currentWeek,
+					playerId: req.body.playerId || "none",
+				}),
+				timestamp: new Date().toISOString(),
+			}
+		});
 	})
 	rep.send({"message":"Booster activated successfully."})
 }
@@ -328,40 +364,52 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 
 	try {
-		await prisma.$transaction(
-			[].concat(
-				req.body.starting.map((startingPlayerId: number) =>
-					prisma.selection.updateMany({
-						where: {
-							playerId: startingPlayerId,
-							teamId: +req.params.id,
-							weekId: {
-								in: remainingWeekIds
-							},
+		await prisma.$transaction( async (prisma) => {
+			await req.body.starting.map((startingPlayerId: number) =>
+				prisma.selection.updateMany({
+					where: {
+						playerId: startingPlayerId,
+						teamId: +req.params.id,
+						weekId: {
+							in: remainingWeekIds
 						},
-						data: {
-							starting: 1,
-							captain: (startingPlayerId === req.body.captainId ? 1 : (startingPlayerId === req.body.viceCaptainId ? 2 : 0)),
-						}
-					})
-				),
-				req.body.bench.map((benchPlayerId: number) =>
-					prisma.selection.updateMany({
-						where: {
-							playerId: benchPlayerId,
-							teamId: +req.params.id,
-							weekId: {
-								in: remainingWeekIds
-							},
+					},
+					data: {
+						starting: 1,
+						captain: (startingPlayerId === req.body.captainId ? 1 : (startingPlayerId === req.body.viceCaptainId ? 2 : 0)),
+					}
+				})
+			);
+			await req.body.bench.map((benchPlayerId: number) =>
+				prisma.selection.updateMany({
+					where: {
+						playerId: benchPlayerId,
+						teamId: +req.params.id,
+						weekId: {
+							in: remainingWeekIds
 						},
-						data: {
-							starting: 0,
-							captain: (benchPlayerId === req.body.captainId ? 1 : (benchPlayerId === req.body.viceCaptainId ? 2 : 0)),
-						}
-					})
-				),
-			)
-		);
+					},
+					data: {
+						starting: 0,
+						captain: (benchPlayerId === req.body.captainId ? 1 : (benchPlayerId === req.body.viceCaptainId ? 2 : 0)),
+					}
+				})
+			);
+			await prisma.audit.create({
+				data: {
+					userId: req.user.id,
+					action: 'POST_TEAM_SELECTION',
+					params: JSON.stringify({
+						teamId: +req.params.id,
+						weekId: weekId,
+						weekIds: remainingWeekIds,
+						starting: req.body.starting,
+						bench: req.body.bench,
+					}),
+					timestamp: new Date().toISOString(),
+				}
+			});
+		});
 		rep.send({ msg: "Ploeg is aangepast." });
 	} catch (e) {
 		rep.status(406).send(e);
@@ -395,28 +443,38 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 				outId: transfer.outId,
 			}
 		});
-		await prisma.$transaction(
-			[
-				prisma.transfer.createMany({
-					data: transferCreateInput
-				})
-			].concat(
-				transfers.map((transfer: any) =>
-					prisma.selection.updateMany({
-						where: {
-							playerId: transfer.outId,
-							teamId: +req.params.id,
-							weekId: {
-								in: remainingWeekIds
-							},
+		await prisma.$transaction( async (prisma) => {
+			prisma.transfer.createMany({
+				data: transferCreateInput
+			});
+			transfers.map((transfer: any) =>
+				prisma.selection.updateMany({
+					where: {
+						playerId: transfer.outId,
+						teamId: +req.params.id,
+						weekId: {
+							in: remainingWeekIds
 						},
-						data: {
-							playerId: transfer.inId
-						}
-					})
-				)
-			)
-		);
+					},
+					data: {
+						playerId: transfer.inId
+					}
+				})
+			);
+			prisma.audit.create({
+				data: {
+					userId: req.user.id,
+					action: 'POST_TRANSFERS',
+					params: JSON.stringify({
+						teamId: +req.params.id,
+						weekId: weekId,
+						weekIds: remainingWeekIds,
+						transfers: transfers,
+					}),
+					timestamp: new Date().toISOString(),
+				}
+			});
+		});
 		rep.send({ msg: "Transfers toegekend" });
 	} else {
 		rep.status(406).send({ msg: "No transfers included." });
