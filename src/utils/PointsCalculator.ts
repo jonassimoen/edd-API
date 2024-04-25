@@ -57,7 +57,10 @@ const PPS = {
 	INTERCEPTIONS_PER_7: [0, 2, 2, 2, 2],
 }
 
-export const calculatePoints = (playerStat: Statistic, positionId: number): number => {
+export const calculatePoints = (playerStat: Statistic, positionId: number | null | undefined): number => {
+	if(positionId === null || positionId === undefined) {
+		return 0
+	}
 	let tempPoints = 0;
 
 	// Minutes played

@@ -28,6 +28,8 @@ enum MatchEventType {
 enum PlayerBoosterType {
   HiddenGem
   GoalRush
+  TripleCaptain
+  ViceVictory
 }
 
 model User {
