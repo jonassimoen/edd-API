@@ -4,12 +4,22 @@ import { ProcessState, Statistic } from "@prisma/client";
 import HttpError from "../utils/HttpError";
 import axios from "axios";
 import { pick, pickBy } from "lodash";
+import { upcomingWeekId } from "../utils/Common";
 
 export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
+	const selectionMaxWeekId = await upcomingWeekId();
 
 	const totalTeams = (await prisma.selection.groupBy({
 		by: ['teamId','weekId'],
+		where: {
+			weekId: {
+				lte: selectionMaxWeekId,
+			}
+		}
 	})).length;
+
+	const matchdayFilter = req.query.matchday ? { id: { equals: +req.query.matchday } } : { validated: true }
+	console.log(matchdayFilter);
 	
 	const players = await prisma.player.findMany({
 		cacheStrategy: {
@@ -20,13 +30,17 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			stats: {
 				where: {
 					match: {
-						week: {
-							validated: true
-						}
+						week: matchdayFilter
 					}
 				}
 			},
-			selections: true,
+			selections: {
+				where: {
+					weekId: {
+						lte: selectionMaxWeekId
+					}
+				}
+			},
 			club: true
 		},
 	});
@@ -37,8 +51,8 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			statMatchesPlayed: sum.statMatchesPlayed + 1,
 			statAssists: sum.statAssists + current.assists,
 			statGoals: sum.statGoals + current.goals,
-			statReds: sum.statReds + !!current.reds,
-			statYellows: sum.statYellows + !!current.yellows,
+			statReds: sum.statReds + +current.red,
+			statYellows: sum.statYellows + +current.yellow,
 			statShots: sum.statShots + current.shots,
 			statShotsOT: sum.statShotsOT + current.shotsOnTarget,
 			statSaves: sum.statSaves + current.saves,
@@ -92,12 +106,12 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			positionId: player.positionId,
 			...sumStats,
 			// refactor: to mapping to get correct accuracy
-			statInTeam: +(player.selections.length / totalTeams * 100),
-			statCaptain: +(player.selections.filter((s: any) => s.captain == 1).length / totalTeams * 100),
-			statViceCaptain: +(player.selections.filter((s: any) => s.captain == 2).length / totalTeams * 100),
+			statInTeam: +(player.selections.length / totalTeams),
+			statCaptain: +(player.selections.filter((s: any) => s.captain == 1).length / totalTeams).toFixed(2),
+			statViceCaptain: +(player.selections.filter((s: any) => s.captain == 2).length / totalTeams).toFixed(2),
 			statShotsAccuracy: sumStats.statShots ? ((sumStats.statShotsOT / sumStats.statShots) || 0).toFixed(2) : null,
 			statPassAccuracy: sumStats.statTotPass ? ((sumStats.statAccPass / sumStats.statTotPass) || 0).toFixed(2) : null,
-			statROI: sumStats.total / player.value,
+			statROI: (sumStats.total / player.value).toFixed(2),
 			statDribbleAccuracy: sumStats.statDribblesAttempted ? ((sumStats.statDribblesSuccess / sumStats.statDribblesAttempted) || 0).toFixed(2) : null,
 		};
 	}).sort((a: any, b: any) => b.total - a.total);

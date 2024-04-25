@@ -100,6 +100,10 @@ export const PlayerPostSchema = {
 
 export const PlayerPutSchema = PlayerPostSchema;
 
+export const PlayerStatisticPutSchema = {
+  matchday: { type: "number"}
+};
+
 export const MatchPostSchema = {
   type: "object",
   properties: {

@@ -1,6 +1,6 @@
 import { GetMatchStatisticsHandler, PutMatchStatisticHandler, DeleteMatchStatisticHandler, GetPlayerStatisticsHandler, ImportMatchStatisticHandler } from "../controllers/Statistic";
 import { RequireUser } from "../middleware/RequireUser";
-import { MatchStatisticPutSchema } from "../types/body-schema";
+import { MatchStatisticPutSchema, PlayerStatisticPutSchema } from "../types/body-schema";
 import { FastifyPluginAsync } from "fastify";
 
 export const PublicMatchStatisticRouter: FastifyPluginAsync = async server => {
@@ -17,7 +17,10 @@ export const PublicPlayerStatisticRouter: FastifyPluginAsync = async server => {
 				method: 'GET',
 				url: '',
 				preHandler: RequireUser,
-				handler: GetPlayerStatisticsHandler
+				handler: GetPlayerStatisticsHandler,
+				schema: {
+					querystring: PlayerStatisticPutSchema
+				}
 		});
 }
 
@@ -28,7 +31,7 @@ export const AdminMatchStatisticRouter: FastifyPluginAsync = async server => {
 				preHandler: RequireUser,
 				handler: PutMatchStatisticHandler,
 				schema: {
-						body: MatchStatisticPutSchema
+					body: MatchStatisticPutSchema
 				}
 		});
 
