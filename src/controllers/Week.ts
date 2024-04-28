@@ -132,7 +132,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 						}
 					}
 
-					if (benchedNonKeepers.length > 0) {
+					else if (benchedNonKeepers.length > 0) {
 						// other player changing
 						const substitutePlayer = benchedNonKeepers.shift();
 						console.log(`Player ${starterNotPlayed.player.short} replaced with player ${substitutePlayer?.player.short}`)
