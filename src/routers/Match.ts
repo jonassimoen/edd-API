@@ -1,4 +1,4 @@
-import { DeleteMatchHandler, GetMatchHandler, GetMatchesHandler, ImportMatchesHandler, PostMatchHandler, PutMatchHandler } from '../controllers/Match';
+import { DeleteMatchHandler, GetMatchHandler, GetMatchesHandler, ImportMatchesHandler, PostRecalculateMatchPoints, PostMatchHandler, PutMatchHandler } from '../controllers/Match';
 
 import { RequireUser } from "../middleware/RequireUser";
 import { MatchPostSchema, MatchPutSchema } from "../types/body-schema";
@@ -29,6 +29,13 @@ export const AdminMatchRouter: FastifyPluginAsync = async server => {
 				schema: {
 						body: MatchPutSchema
 				}
+		});
+		
+		server.route({
+				method: 'POST',
+				url: '/:id/recalculate',
+				preHandler: RequireUser,
+				handler: PostRecalculateMatchPoints,
 		});
 		
 		server.route({

@@ -1,6 +1,8 @@
+import { calculatePoints } from "../utils/PointsCalculator";
 import { prisma } from "../db/client"
 import HttpError from "../utils/HttpError";
 import axios from "axios";
+import { Statistic } from "@prisma/client";
 
 export const GetMatchesHandler = async (req: any, rep: any) => {
 	const matches = await prisma.match.findMany({
@@ -87,6 +89,49 @@ export const PostMatchHandler = async (req: any, rep: any) => {
 	}
 	const match = await prisma.match.create({data});
 	rep.send(match);
+}
+
+export const PostRecalculateMatchPoints = async (req: any, rep: any) => {
+	const matchId = +req.params.id;
+	const matchPlayerStats = await prisma.statistic.findMany({
+		where: {
+			id: matchId,
+		},
+	});
+
+	const matchPlayerStatsRecalc = matchPlayerStats.map((ps: any) => {
+		const calculatedPoints = calculatePoints(ps, ps?.player?.positionId);
+		return {...ps, points: calculatedPoints};
+	});
+
+	await prisma.$transaction(
+		matchPlayerStatsRecalc.map((ps: Statistic) => 
+			prisma.statistic.update({
+				where: {
+					id: ps.id,
+				},
+				data: {
+					points: ps.points,
+					player: {
+						update: {
+							selections: {
+								updateMany: {
+									where: {
+										playerId: ps?.playerId,
+									},
+									data: {
+										points: ps.points,
+									}
+								}
+							}
+						}
+					}
+				}
+			})
+		)
+	);
+
+	rep.send({msg: "Points recalculated."})
 }
 
 export const DeleteMatchHandler = async (req: any, rep: any) => {
