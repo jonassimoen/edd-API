@@ -444,11 +444,11 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 			}
 		});
 		await prisma.$transaction( async (prisma) => {
-			prisma.transfer.createMany({
+			await prisma.transfer.createMany({
 				data: transferCreateInput
 			});
 			transfers.map((transfer: any) =>
-				prisma.selection.updateMany({
+				await prisma.selection.updateMany({
 					where: {
 						playerId: transfer.outId,
 						teamId: +req.params.id,
@@ -461,7 +461,7 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 					}
 				})
 			);
-			prisma.audit.create({
+			await prisma.audit.create({
 				data: {
 					userId: req.user.id,
 					action: 'POST_TRANSFERS',
