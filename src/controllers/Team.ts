@@ -448,7 +448,7 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 				data: transferCreateInput
 			});
 			await Promise.all(transfers.map(async (transfer: any) =>
-				prisma.selection.updateMany({
+				await prisma.selection.updateMany({
 					where: {
 						playerId: transfer.outId,
 						teamId: +req.params.id,
