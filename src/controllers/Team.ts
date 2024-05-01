@@ -372,8 +372,8 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 					}
 				})
 			);
-			await req.body.bench.map((benchPlayerId: number) =>
-				prisma.selection.updateMany({
+			await Promise.all(req.body.bench.map(async (benchPlayerId: number) =>
+				await prisma.selection.updateMany({
 					where: {
 						playerId: benchPlayerId,
 						teamId: +req.params.id,
@@ -386,7 +386,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 						captain: (benchPlayerId === req.body.captainId ? 1 : (benchPlayerId === req.body.viceCaptainId ? 2 : 0)),
 					}
 				})
-			);
+			));
 			await prisma.audit.create({
 				data: {
 					userId: req.user.id,
@@ -436,11 +436,11 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 			}
 		});
 		await prisma.$transaction( async (prisma) => {
-			prisma.transfer.createMany({
+			await prisma.transfer.createMany({
 				data: transferCreateInput
 			});
-			transfers.map((transfer: any) =>
-				prisma.selection.updateMany({
+			await Promise.all(transfers.map(async (transfer: any) =>
+				await prisma.selection.updateMany({
 					where: {
 						playerId: transfer.outId,
 						teamId: +req.params.id,
@@ -452,8 +452,8 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 						playerId: transfer.inId
 					}
 				})
-			);
-			prisma.audit.create({
+			));
+			await prisma.audit.create({
 				data: {
 					userId: req.user.id,
 					action: 'POST_TRANSFERS',
