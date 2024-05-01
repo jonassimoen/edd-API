@@ -106,10 +106,6 @@ export const DeleteDropTeamHandler = async (req: any, rep: any) => {
 export const GetTeamHandler = async (req: any, rep: any) => {
 	const weekId = await upcomingWeekId();
 	const playersWithMultipleSelections = await prisma.player.findMany({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
 		where: {
 			selections: {
 				some: {
@@ -154,10 +150,6 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 	});
 
 	const transfers = await prisma.transfer.findMany({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
 		where: {
 			teamId: +req.params.id,
 			weekId,
