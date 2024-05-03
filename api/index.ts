@@ -9,7 +9,6 @@ import { deserializeUser } from "../src/utils/DeserializeUser";
 import fastifyStatic from "@fastify/static";
 import path from "path";
 import _default from "fastify-metrics";
-import { prisma } from "../src/db/client";
 dotenv.config();
 
 export const server = fastify({
@@ -20,6 +19,11 @@ export const server = fastify({
 });
 
 server.addHook("preHandler", deserializeUser);
+
+server.register(require("fastify-list-routes"), { colors: true });
+server.register(require("fastify-stripe"), {
+  apiKey: process.env.STRIPE_KEY
+})
 
 server.register(cors, {
   origin:

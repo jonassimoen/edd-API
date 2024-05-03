@@ -33,11 +33,11 @@ enum PlayerBoosterType {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   firstName String
   lastName  String
   avatar    String?
-  email     String  @unique
+  email     String   @unique
   city      String?
   street    String?
   streetNr  String?
@@ -45,6 +45,7 @@ model User {
   // favoriteClubId String
   // registerInfo String
   role      Int
+  payed     Boolean? @default(false)
 
   teams Team[]
   Audit Audit[]

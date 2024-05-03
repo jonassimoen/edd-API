@@ -6,6 +6,12 @@ export const GeneralInfoHandler = async (req: any, rep: any) => {
 		userCount: await prisma.user.count(),
 		teamCount: await prisma.team.count(),
 		clubWinner: await prisma.club.findFirst({where: {winner: true}}),
+		users: await prisma.user.findMany({
+			select: {
+				email: true,
+				payed: true,
+			}
+		})
 		// teamCount: await prisma.team.count(),
 	});
 }

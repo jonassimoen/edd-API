@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
 import { GoogleAuthHandler } from "../controllers/UserAuth";
-import { GetProfileHandler, GetTeamsHandler, LogoutHandler, PutUserHandler } from "../controllers/User";
+import { GetProfileHandler, GetTeamsHandler, LogoutHandler, PaymentIntentHandler, PaymentResultHandler, PutUserHandler } from "../controllers/User";
 import { RequireUser } from "../middleware/RequireUser";
 
 export const UserRouter: FastifyPluginAsync = async server => {
@@ -21,6 +21,25 @@ export const UserRouter: FastifyPluginAsync = async server => {
 				url: '/profile',
 				preHandler: RequireUser,
 				handler: GetProfileHandler
+		});
+
+		server.route({
+				method: "POST",
+				url: '/pay',
+				handler: PaymentIntentHandler,
+		});
+
+		server.route({
+				method: "GET",
+				url: '/payment-result',
+				handler: PaymentResultHandler,
+				schema: {
+					querystring: {
+						payment_intent: {type: "string"},
+						payment_intent_client_secret: {type: "string"},
+						redirect_status: {type: "string"},
+					}
+				}
 		});
 
 		server.route({
