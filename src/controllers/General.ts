@@ -8,6 +8,8 @@ export const GeneralInfoHandler = async (req: any, rep: any) => {
 		clubWinner: await prisma.club.findFirst({where: {winner: true}}),
 		users: await prisma.user.findMany({
 			select: {
+				firstName: true,
+				lastName: true,
 				email: true,
 				payed: true,
 			}
