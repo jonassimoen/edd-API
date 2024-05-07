@@ -34,7 +34,7 @@ export const PaymentIntentHandler = async (req: any, rep: any) => {
 		},
 		customer: stripeCustomer.data[0]?.id,
 	}).then(
-		(paymentIntent: any) => {console.log(paymentIntent); rep.send({clientSecret: paymentIntent.client_secret});}
+		(paymentIntent: any) => rep.send({clientSecret: paymentIntent.client_secret})
 	).catch(
 		(err: any) => rep.status(501).send("Something went wrong with the payment intent!")
 	);
