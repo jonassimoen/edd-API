@@ -10,9 +10,7 @@ export const TeamRouter: FastifyPluginAsync = async server => {
 				url: '/add',
 				preHandler: RequireUser,
 				handler: PostAddTeamHandler,
-				schema: {
-						body: AddTeamSchema
-				}
+				schema: AddTeamSchema
 		});
 
 		server.route({
@@ -55,14 +53,16 @@ export const TeamRouter: FastifyPluginAsync = async server => {
 				method: 'POST',
 				url: '/:id',
 				preHandler: [RequireUser, RequireTeamOwner],
-				handler: PostEditTeamHandler
+				handler: PostEditTeamHandler,
+				schema: AddTeamSchema
 		});
 
 		server.route({
 				method: 'POST',
 				url: '/:id/selections',
 				preHandler: [RequireUser, RequireTeamOwner],
-				handler: PostSelectionsTeamHandler
+				handler: PostSelectionsTeamHandler,
+				schema: AddTeamSchema
 		});
 
 		server.route({
@@ -70,9 +70,7 @@ export const TeamRouter: FastifyPluginAsync = async server => {
 				url: '/:id/transfers',
 				preHandler: [RequireUser, RequireTeamOwner],
 				handler: PostTransfersTeamHandler,
-				schema: {
-						body: TransfersTeamSchema
-				}
+				schema: TransfersTeamSchema
 		});
 
 		server.route({

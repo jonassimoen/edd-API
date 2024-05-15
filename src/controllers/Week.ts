@@ -52,6 +52,7 @@ export const PostWeeksHandler = async (req: any, rep: any) => {
 }
 
 export const PostWeekValidateHandler = async (req: any, rep: any) => {
+	const weekId = +req.params.id;
 	const statsSumPoints = await prisma.statistic.groupBy({
 		cacheStrategy: {
 			ttl: 30,
@@ -59,7 +60,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 		},
 		where: {
 			match: {
-				weekId: +req.params.id
+				weekId
 			}
 		},
 		by: ['playerId'],
@@ -74,7 +75,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 			swr: 60,
 		},
 		where: {
-			weekId: +req.params.id,
+			weekId,
 			starting: 1,
 		},
 		by: ['teamId'],
@@ -82,6 +83,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 			points: true
 		}
 	});
+	console.log("teamPoints",teamPoints);
 
 	const teamsWithSelections = await prisma.team.findMany({
 		cacheStrategy: {
@@ -91,7 +93,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 		include: {
 			selections: {
 				where: {
-					weekId: +req.params.id
+					weekId
 				},
 				include: {
 					player: {
@@ -99,7 +101,10 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 							positionId: true,
 							short: true,
 						}
-					}
+					},
+				},
+				orderBy: {
+					order: 'asc',
 				}
 			}
 		}
@@ -114,7 +119,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 				const benchedKeeper = benchersPlayed.find((sel: any) => sel.player.positionId === 1);
 				const benchedNonKeepers = benchersPlayed.filter((sel: any) => sel.player.positionId !== 1);
 
-				console.log(`Team #${team.id} has ${team.selections.length} selections in week ${+req.params.id}, ${startersNotPlaying.length} starters did not play, ${benchersPlayed.length} bench players did play`);
+				console.log(`Team #${team.id} has ${team.selections.length} selections in week ${weekId}, ${startersNotPlaying.length} starters did not play, ${benchersPlayed.length} bench players did play`);
 				for (const starterNotPlayed of startersNotPlaying) {
 
 					// keeper changing
@@ -122,27 +127,28 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 						if (benchedKeeper?.played) {
 							console.log(`Keeper ${starterNotPlayed.player.short} replaced with keeper ${benchedKeeper?.player.short}`)
 							await prisma.selection.update({
-								where: { id: starterNotPlayed.id },
-								data: { starting: 0 },
+								where: { id: starterNotPlayed.id! },
+								data: { starting: 0, order: benchedKeeper.order },
 							});
 							await prisma.selection.update({
-								where: { id: benchedKeeper.id },
-								data: { starting: 1 },
+								where: { id: benchedKeeper.id! },
+								data: { starting: 1, order: starterNotPlayed.order },
 							});
 						}
 					}
 
 					else if (benchedNonKeepers.length > 0) {
 						// other player changing
+						// TODO: check if valid lineup
 						const substitutePlayer = benchedNonKeepers.shift();
 						console.log(`Player ${starterNotPlayed.player.short} replaced with player ${substitutePlayer?.player.short}`)
 						await prisma.selection.update({
-							where: { id: starterNotPlayed.id },
-							data: { starting: 0 },
+							where: { id: starterNotPlayed.id! },
+							data: { starting: 0, order: substitutePlayer?.order },
 						});
 						await prisma.selection.update({
-							where: { id: substitutePlayer?.id },
-							data: { starting: 1 },
+							where: { id: substitutePlayer?.id! },
+							data: { starting: 1, order: starterNotPlayed.order },
 						});
 					}
 				}
@@ -157,14 +163,14 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 	const [updatedWeek, ...other] = await prisma.$transaction([
 		prisma.week.update({
 			where: {
-				id: +req.params.id,
+				id: weekId,
 			},
 			data: {
 				validated: true,
 				Match: {
 					updateMany: {
 						where: {
-							weekId: +req.params.id
+							weekId: weekId
 						},
 						data: {
 							status: ProcessState.VALIDATED
@@ -173,30 +179,8 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 				},
 			}
 		}),
-		...statsSumPoints.map((sumStatPlayer: any) =>
-			prisma.player.update({
-				where: {
-					id: sumStatPlayer.playerId,
-				},
-				data: {
-					points: {
-						increment: sumStatPlayer._sum.points
-					}
-				}
-			})
-		),
-		...teamPoints.map((teamPoint: any) =>
-			prisma.team.update({
-				where: {
-					id: teamPoint.teamId,
-				},
-				data: {
-					points: {
-						increment: teamPoint._sum.points,
-					}
-				}
-			})
-		),
+		// Captain - Vice Captain points multipliers (Triple Captain / Vice victory)
+		prisma.$queryRaw`CALL "calculateTeamAndPlayerPoints"(${weekId})`
 	]);
 	rep.send(updatedWeek);
 }

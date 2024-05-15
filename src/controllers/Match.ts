@@ -93,20 +93,28 @@ export const PostMatchHandler = async (req: any, rep: any) => {
 
 export const PostRecalculateMatchPoints = async (req: any, rep: any) => {
 	const matchId = +req.params.id;
-	const matchPlayerStats = await prisma.statistic.findMany({
+	const match = await prisma.match.findFirst({
 		where: {
 			id: matchId,
+		}
+	});
+	const matchPlayerStats = await prisma.statistic.findMany({
+		where: {
+			matchId,
 		},
+		include: {
+			player: true
+		}
 	});
 
 	const matchPlayerStatsRecalc = matchPlayerStats.map((ps: any) => {
 		const calculatedPoints = calculatePoints(ps, ps?.player?.positionId);
-		return {...ps, points: calculatedPoints};
+		return {...ps, points: calculatedPoints };
 	});
 
-	await prisma.$transaction(
-		matchPlayerStatsRecalc.map((ps: Statistic) => 
-			prisma.statistic.update({
+	await prisma.$transaction( async (prisma) => {
+		await Promise.all(matchPlayerStatsRecalc.map((ps: Statistic) => {
+			return prisma.statistic.update({
 				where: {
 					id: ps.id,
 				},
@@ -118,18 +126,27 @@ export const PostRecalculateMatchPoints = async (req: any, rep: any) => {
 								updateMany: {
 									where: {
 										playerId: ps?.playerId,
+										weekId: match?.weekId || 0,
 									},
 									data: {
 										points: ps.points,
+										played: +(ps.minutesPlayed || 0) > 0 ? 1 : 0
 									}
 								}
 							}
 						}
 					}
 				}
-			})
-		)
-	);
+			});
+		})),
+		// Captain - Vice Captain points multipliers (Triple Captain / Vice victory)
+		await prisma.$queryRaw`CALL "processViceCaptainAndBoosters"(${match?.weekId})`,
+		// HiddenGem - GoalRush points multipliers
+		await prisma.$queryRaw`CALL "processPlayerBoosters"(${match?.weekId})`
+	}, {
+		maxWait: 5000,
+		timeout: 10000,
+	});
 
 	rep.send({msg: "Points recalculated."})
 }

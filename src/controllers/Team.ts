@@ -2,47 +2,81 @@ import { finalWeekId, upcomingWeekId } from '../utils/Common';
 import { prisma } from "../db/client"
 import HttpError from "../utils/HttpError";
 import { max } from "lodash";
+import { isValidLineup } from '../utils/FootballPicker';
 
-export const PostAddTeamHandler = async (req: any, rep: any) => {
-
-	if (req.body.bench.length != 4 || req.body.starting.length != 11) {
-		throw new HttpError("Invalid team: invalid number of players", 400);
-	}
-	const allIds = req.body.starting.concat(req.body.bench);
-	const all = await prisma.player.findMany({
+const GetPlayerByIds = async (allPlayerIds: number[], reqBody: any, weekId: number, skipReturn?: boolean) => {
+	const allPlayers = await prisma.player.findMany({
 		where: {
 			id: {
-				in: allIds
+				in: allPlayerIds
 			}
 		},
 		select: {
 			id: true,
+			clubId: true,
+			positionId: true,
 			value: true,
+		},
+	});
+	console.log(allPlayers);
+
+	// Business rules checks
+	// 1. Correct positions
+	const pos = allPlayers.reduce((res: number[], cur: any) => {
+		res[cur.positionId] = (res[cur.positionId] || 0) + 1;
+		return res;
+	}, [0,0,0,0,0])
+	if(pos.toString() !== "0,2,5,5,3") 
+		throw new HttpError("Wrong selection of positions", 403);
+	// 2. Max 3 players from club
+	const clubs = allPlayers.reduce((res: number[], cur: any) => {
+		res[cur.clubId] = (res[cur.clubId] || 0) + 1;
+		return res;
+	}, [])
+	if(clubs.some(count => count > 3)) {
+		throw new HttpError("Too much player of same club", 403);
+	}
+	// 3. Within budget
+	const totalValue = allPlayers.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
+	const budget = 100 - totalValue;
+	if (budget <= 0) {
+		throw new HttpError(`Invalid budget (${budget})`, 403);
+	}
+	// 4. Valid position
+	if(!isValidLineup(allPlayers.filter(p => allPlayerIds.slice(0,11).indexOf(p.id) > -1 ))) {
+		throw new HttpError('Invalid lineup', 403);
+	}
+	if(skipReturn) {
+		return;
+	}
+
+	return allPlayerIds.map((id: number, index: number) => {
+		const player = allPlayers.find((p) => p.id === id);
+		return {
+			order: index + 1,
+			playerId: id,
+			value: player?.value || 0,
+			captain: (id === reqBody.captainId) ? 1 : (id === reqBody.viceCaptainId ? 2 : 0),
+			starting: player ? (reqBody.starting.includes(player?.id) ? 1 : 0) : 0,
+			weekId,
 		}
 	});
+}
+
+export const PostAddTeamHandler = async (req: any, rep: any) => {
+	if (req.body.bench.length != 4 || req.body.starting.length != 11) {
+		throw new HttpError("Invalid team: invalid number of players", 400);
+	}
+	const allIds = req.body.starting.concat(req.body.bench);
 
 	const weekId = await upcomingWeekId();
 	const lastWeekId = await finalWeekId();
 
-	const allWithValues = allIds.map((id: number) => {
-		const player = all.find((p) => p.id === id);
-		return {
-			playerId: id,
-			value: (player ? player.value : 0),
-			captain: (id === req.body.captainId) ? 1 : (id === req.body.viceCaptainId ? 2 : 0),
-			starting: player ? (req.body.starting.includes(player?.id) ? 1 : 0) : 0,
-			weekId,
-		}
-	});
+	const allWithValues = await GetPlayerByIds(allIds, req.body, weekId);
 
-	const totalValue = all.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
+	const totalValue = allWithValues!.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
 	const budget = 100 - totalValue;
-
-	if (budget <= 0) {
-		throw new HttpError(`Invalid team: invalid budget (${budget})`, 400);
-	}
-
-	const allWithValuesForAllRemainingWeeks = allWithValues.flatMap((p: any) => Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId).map(wId => ({ ...p, weekId: wId })));
+	const allWithValuesForAllRemainingWeeks = allWithValues!.flatMap((p: any) => Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId).map(wId => ({ ...p, weekId: wId })));
 
 	const [team, audit] = await prisma.$transaction([
 		prisma.team.create({
@@ -91,7 +125,7 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 			id: team.id,
 			name: team.name,
 		},
-		players: team.selections.map(selection => selection.id)
+		status: "success"
 	});
 }
 
@@ -127,14 +161,19 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 					playerId: true,
 					weekId: true,
 					booster: true,
-				}
+					order: true,
+				},
 			}
-		}
+		},
 	});
-	const players = playersWithMultipleSelections.map(({ selections, ...rest }) => ({
-		...rest,
-		selection: selections[0]
-	})).sort((p1, p2) => (p2.selection.starting !== p1.selection.starting) ? (p2.selection.starting - p1.selection.starting) : ((p1.positionId || 0) - (p2.positionId || 0)));
+	const players = playersWithMultipleSelections.sort((a, b) => a.selections[0].order! - b.selections[0].order!)
+	.map(({ selections, ...rest }) => {
+		const {order, ...sel} = selections[0];
+		return {
+			...rest,
+			selection: sel
+		}
+	})
 
 	const team = await prisma.team.findFirst({
 		cacheStrategy: {
@@ -188,11 +227,12 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 					played: true,
 					endWinnerSelections: true,
 					points: true,
+					order: true,
 				},
 				where: {
 					teamId: +req.params.id,
 					weekId: +req.params.weekId,
-				}
+				},
 			},
 			stats: {
 				where: {
@@ -209,7 +249,7 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 					weekId: +req.params.weekId,
 				}
 			}
-		}
+		},
 	});
 	const deadlineWeek = await prisma.week.findFirst({
 		cacheStrategy: {
@@ -234,7 +274,7 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 	const globalData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points) DESC) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId" ORDER BY rank ASC`;
 
 	rep.send({
-		players,
+		players: players.sort((a, b) => a.selections[0].order! - b.selections[0].order!),
 		team: {
 			...team,
 			rank: globalData.find((teamData: any) => teamData.teamId === +req.params.id)?.rank || 0,
@@ -348,6 +388,92 @@ export const PostNameTeamHandler = async (req: any, rep: any) => {
 
 export const PostEditTeamHandler = async (req: any, rep: any) => {
 
+	if (req.body.bench?.length != 4 || req.body.starting?.length != 11) {
+		throw new HttpError("Invalid team: invalid number of players", 400);
+	}
+	const weekId = await upcomingWeekId();
+	const lastWeekId = await finalWeekId();
+	const team = await prisma.team.findFirst({
+		where: {
+			id: +req.params.id
+		}
+	});
+
+	let type = 'BEFORE_START'
+
+	if(weekId > +(process.env.OFFICIAL_START_WEEK || 0)) {
+		throw new HttpError("Editing is not allowed anymore.", 400);
+	} 
+
+	if(team?.freeHit && (team?.freeHit == weekId)) {
+		type = 'FREE_HIT'
+	}
+
+	const allIds = req.body.starting.concat(req.body.bench);
+
+	let allWithValues = await GetPlayerByIds(allIds, req.body, weekId);
+	let weekIds = [weekId];
+
+	const totalValue = allWithValues!.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
+	const budget = 100 - totalValue;
+
+	if (budget <= 0) {
+		throw new HttpError(`Invalid team: invalid budget (${budget})`, 400);
+	}	
+
+	if (type !== 'FREE_HIT') {
+		// If editing team, all selections should be updated, except if it's for FREE HIT booster. (only 1 gameday!)
+		weekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
+		allWithValues = allWithValues!.flatMap((p: any) => weekIds.map(wId => ({ ...p, weekId: wId })));
+	}
+
+	const [deletion, updatedTeam, audit] = await prisma.$transaction([
+		prisma.selection.deleteMany({
+			where: {
+				teamId: +req.params.id,
+				weekId: {
+					in: weekIds
+				}
+			}
+		}),
+		prisma.team.update({
+			where: {
+				id: +req.params.id
+			},
+			data: {
+				name: req.body.teamName,
+				valid: true,
+				selections: {
+					createMany: {
+						data: allWithValues!
+					}
+				}
+			},
+			include: {
+				selections: true,
+				user: true,
+			}
+		}),
+		prisma.audit.create({
+			data: {
+				userId: req.user.id,
+				action: `EDIT_TEAM_${type}`,
+				params: JSON.stringify({
+					userId: req.user.id,
+					selections: allWithValues,
+					budget: budget,
+					value: totalValue,
+					valid: true,
+					created: new Date(Date.now()),
+					name: req.body.teamName
+				}),
+				timestamp: new Date().toISOString(),
+			}
+		})
+	]);
+	rep.send({
+		message: "Team successfully updated."
+	});
 }
 
 export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
@@ -355,9 +481,15 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 	const lastWeekId = await finalWeekId();
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 
+	if (req.body.bench.length != 4 || req.body.starting.length != 11) {
+		throw new HttpError("Invalid team: invalid number of players", 400);
+	}
+	const allIds = req.body.starting.concat(req.body.bench);
+	const allWithValues = await GetPlayerByIds(allIds, req.body, weekId);
+
 	try {
 		await prisma.$transaction( async (prisma) => {
-			await req.body.starting.map((startingPlayerId: number) =>
+			await Promise.all(req.body.starting.map((startingPlayerId: number, index: number) =>
 				prisma.selection.updateMany({
 					where: {
 						playerId: startingPlayerId,
@@ -367,12 +499,13 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 						},
 					},
 					data: {
+						order: index + 1,
 						starting: 1,
 						captain: (startingPlayerId === req.body.captainId ? 1 : (startingPlayerId === req.body.viceCaptainId ? 2 : 0)),
 					}
 				})
-			);
-			await Promise.all(req.body.bench.map(async (benchPlayerId: number) =>
+			));
+			await Promise.all(req.body.bench.map(async (benchPlayerId: number, index: number) =>
 				await prisma.selection.updateMany({
 					where: {
 						playerId: benchPlayerId,
@@ -382,6 +515,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 						},
 					},
 					data: {
+						order: index + 12,
 						starting: 0,
 						captain: (benchPlayerId === req.body.captainId ? 1 : (benchPlayerId === req.body.viceCaptainId ? 2 : 0)),
 					}
@@ -426,6 +560,20 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 			rep.status(403).send({ msg: "Whoaaa, too much transfers!" });
 			return;
 		}
+		const allTfIds = (await prisma.selection.findMany({
+				where: {
+					teamId: +req.params.id,
+					weekId: weekId,
+				},
+				select: {
+					playerId: true
+				}
+			})).map((n: { playerId: number; }) => {
+				const tf = transfers.find((t: any) => t.outId === n.playerId);
+				return tf ? tf.inId : n.playerId;
+			});
+		await GetPlayerByIds(allTfIds, req.body, weekId, true);
+
 		const transferCreateInput = transfers.map((transfer: any) => {
 			return {
 				teamId: +req.params.id,
@@ -483,11 +631,9 @@ export const PostBadgeHandler = async (req: any, rep: any) => {
 
 export const GetRankingHandler = async (req: any, rep: any) => {
 	const result: any[] = await prisma.$queryRaw`
-			SELECT u."firstName", u."lastName", u.id as "userId", t.id as "teamId", t.name, SUM(s.points)::INTEGER as points, (RANK() OVER(ORDER BY SUM(s.points) DESC))::INTEGER 
-			FROM "Selection" s 
-			JOIN "Team" t ON t.id = s."teamId"
+			SELECT u."firstName", u."lastName", u.id as "userId", t.id as "teamId", t.name, t.points, (RANK() OVER(ORDER BY SUM(t.points) DESC))::INTEGER 
+			FROM "Team" t 
 			JOIN "User" u ON u.id = t."userId"
-			WHERE s.starting = 1
 			GROUP BY t.id, u.id
 		`;
 	const mappedResult = result.map((team: any) => ({
