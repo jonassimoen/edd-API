@@ -302,7 +302,7 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 
 export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 	const boosterUnCC = req.body.type.charAt(0).toUpperCase() + req.body.type.slice(1);
-	const validBoosters = ["tripleCaptain","viceVictory","hiddenGem","goalRush"];
+	const validBoosters = ["tripleCaptain","viceVictory","hiddenGem","goalRush","superSubs"];
 
 	if(!validBoosters.includes(req.body.type)) 
 		throw new HttpError("Invalid booster", 404)
