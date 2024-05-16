@@ -69,8 +69,7 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 	}
 	const allIds = req.body.starting.concat(req.body.bench);
 
-	const weekId = await upcomingWeekId();
-	const lastWeekId = await finalWeekId();
+	const [weekId, lastWeekId] = await Promise.all([upcomingWeekId(), finalWeekId()]);
 
 	const allWithValues = await GetPlayerByIds(allIds, req.body, weekId);
 
@@ -139,142 +138,159 @@ export const DeleteDropTeamHandler = async (req: any, rep: any) => {
 
 export const GetTeamHandler = async (req: any, rep: any) => {
 	const weekId = await upcomingWeekId();
-	const playersWithMultipleSelections = await prisma.player.findMany({
-		where: {
-			selections: {
-				some: {
-					teamId: +req.params.id,
-					weekId,
+	const [playersWithMultipleSelections, team, transfers] = await Promise.all([
+		prisma.player.findMany({
+			where: {
+				selections: {
+					some: {
+						teamId: +req.params.id,
+						weekId,
+					}
 				}
-			}
-		},
-		include: {
-			selections: {
-				where: {
-					teamId: +req.params.id,
-					weekId,
-				},
-				select: {
-					captain: true,
-					starting: true,
-					value: true,
-					playerId: true,
-					weekId: true,
-					booster: true,
-					order: true,
-				},
-			}
-		},
-	});
-	const players = playersWithMultipleSelections.sort((a, b) => a.selections[0].order! - b.selections[0].order!)
-	.map(({ selections, ...rest }) => {
-		const {order, ...sel} = selections[0];
-		return {
-			...rest,
-			selection: sel
-		}
-	})
+			},
+			include: {
+				selections: {
+					where: {
+						teamId: +req.params.id,
+						weekId,
+					},
+					select: {
+						captain: true,
+						starting: true,
+						value: true,
+						playerId: true,
+						weekId: true,
+						booster: true,
+						order: true,
+					},
+				}
+			},
+		}),
 
-	const team = await prisma.team.findFirst({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		where: {
-			id: +req.params.id
-		},
-		include: {
-			user: true
-		}
-	});
+		prisma.team.findFirst({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
+			},
+			where: {
+				id: +req.params.id
+			},
+			include: {
+				user: true
+			}
+		}),
 
-	const transfers = await prisma.transfer.findMany({
-		where: {
-			teamId: +req.params.id,
-			weekId,
-		}
-	})
-	rep.send({ team: { ...team }, players, transfers: transfers });
+		prisma.transfer.findMany({
+			where: {
+				teamId: +req.params.id,
+				weekId,
+			}
+		}),
+	])
+	
+	rep.send({ 
+		team: { ...team }, 
+		players: playersWithMultipleSelections
+			.sort((a, b) => a.selections[0].order! - b.selections[0].order!)
+			.map(({ selections, ...rest }) => {
+				const {order, ...sel} = selections[0];
+				return {
+					...rest,
+					selection: sel
+				}
+			}), 
+		transfers: transfers 
+	});
 }
 
 export const GetPointsTeamHandler = async (req: any, rep: any) => {
-	const team = await prisma.team.findUnique({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		where: {
-			id: +req.params.id,
-		}
-	});
-	if(!team) {
-		rep.status(404);
-	}
-	const players = await prisma.player.findMany({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		include: {
-			selections: {
-				select: {
-					captain: true,
-					starting: true,
-					value: true,
-					playerId: true,
-					weekId: true,
-					booster: true,
-					played: true,
-					endWinnerSelections: true,
-					points: true,
-					order: true,
-				},
-				where: {
-					teamId: +req.params.id,
-					weekId: +req.params.weekId,
-				},
+	const [
+		team, 
+		players, 
+		deadlineWeek,
+		transfers,
+		weeklyData,
+		globalData
+	]: [any, any, any, any, any, any] = await Promise.all([
+		prisma.team.findUnique({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
 			},
-			stats: {
-				where: {
-					match: {
+			where: {
+				id: +req.params.id,
+			}
+		}).catch((err: any) => rep.status(404)),
+
+		prisma.player.findMany({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
+			},
+			include: {
+				selections: {
+					select: {
+						captain: true,
+						starting: true,
+						value: true,
+						playerId: true,
+						weekId: true,
+						booster: true,
+						played: true,
+						endWinnerSelections: true,
+						points: true,
+						order: true,
+					},
+					where: {
+						teamId: +req.params.id,
+						weekId: +req.params.weekId,
+					},
+				},
+				stats: {
+					where: {
+						match: {
+							weekId: +req.params.weekId,
+						}
+					}
+				}
+			},
+			where: {
+				selections: {
+					some: {
+						teamId: +req.params.id,
 						weekId: +req.params.weekId,
 					}
 				}
+			},
+		}),
+
+		prisma.week.findFirst({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
+			},
+			where: {
+				id: +req.params.weekId
 			}
-		},
-		where: {
-			selections: {
-				some: {
-					teamId: +req.params.id,
-					weekId: +req.params.weekId,
-				}
+		}),
+
+		prisma.transfer.findMany({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
+			},
+			where: {
+				teamId: +req.params.id,
+				weekId: +req.params.weekId,
 			}
-		},
-	});
-	const deadlineWeek = await prisma.week.findFirst({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		where: {
-			id: +req.params.weekId
-		}
-	});
-	const transfers = await prisma.transfer.findMany({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		where: {
-			teamId: +req.params.id,
-			weekId: +req.params.weekId,
-		}
-	});
-	const weeklyData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points) DESC) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND starting = 1 GROUP BY "teamId" ORDER BY rank ASC`;
-	const globalData: [{ teamId: number, points: number, rank: number }] = await prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points) DESC) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId" ORDER BY rank ASC`;
+		}),
+
+		prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points) DESC) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND starting = 1 GROUP BY "teamId" ORDER BY rank ASC`,
+		prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points) DESC) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId" ORDER BY rank ASC`,
+	]);
 
 	rep.send({
-		players: players.sort((a, b) => a.selections[0].order! - b.selections[0].order!),
+		players: players.sort((a: any, b: any) => a.selections[0].order! - b.selections[0].order!),
 		team: {
 			...team,
 			rank: globalData.find((teamData: any) => teamData.teamId === +req.params.id)?.rank || 0,
@@ -391,13 +407,16 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 	if (req.body.bench?.length != 4 || req.body.starting?.length != 11) {
 		throw new HttpError("Invalid team: invalid number of players", 400);
 	}
-	const weekId = await upcomingWeekId();
-	const lastWeekId = await finalWeekId();
-	const team = await prisma.team.findFirst({
-		where: {
-			id: +req.params.id
-		}
-	});
+
+	const [weekId, lastWeekId, team] = await Promise.all([
+		upcomingWeekId(),
+		finalWeekId(),
+		prisma.team.findFirst({
+			where: {
+				id: +req.params.id
+			}
+		}),
+	]);
 
 	const hasFreeHit = team?.freeHit && (team?.freeHit == weekId)
 	console.log(team);
@@ -474,8 +493,7 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 }
 
 export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
-	const weekId = await upcomingWeekId();
-	const lastWeekId = await finalWeekId();
+	const [weekId, lastWeekId] = await Promise.all([upcomingWeekId(), finalWeekId()]);
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 
 	if (req.body.bench.length != 4 || req.body.starting.length != 11) {
@@ -541,8 +559,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 
 export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 	const transfers = req.body.transfers;
-	const weekId = await upcomingWeekId();
-	const lastWeekId = await finalWeekId();
+	const [weekId, lastWeekId] = await Promise.all([upcomingWeekId(), finalWeekId()]);
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 
 	if (transfers) {
