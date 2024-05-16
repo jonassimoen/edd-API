@@ -302,7 +302,7 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 
 export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 	const boosterUnCC = req.body.type.charAt(0).toUpperCase() + req.body.type.slice(1);
-	const validBoosters = ["tripleCaptain","viceVictory","hiddenGem","goalRush","superSubs"];
+	const validBoosters = ["tripleCaptain","viceVictory","hiddenGem","goalRush","superSubs","freeHit"];
 
 	if(!validBoosters.includes(req.body.type)) 
 		throw new HttpError("Invalid booster", 404)
@@ -399,15 +399,12 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 		}
 	});
 
-	let type = 'BEFORE_START'
+	const hasFreeHit = team?.freeHit && (team?.freeHit == weekId)
+	console.log(team);
 
-	if(weekId > +(process.env.OFFICIAL_START_WEEK || 0)) {
+	if((weekId > +(process.env.OFFICIAL_START_WEEK || 0)) && !hasFreeHit) {
 		throw new HttpError("Editing is not allowed anymore.", 400);
 	} 
-
-	if(team?.freeHit && (team?.freeHit == weekId)) {
-		type = 'FREE_HIT'
-	}
 
 	const allIds = req.body.starting.concat(req.body.bench);
 
@@ -421,7 +418,7 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 		throw new HttpError(`Invalid team: invalid budget (${budget})`, 400);
 	}	
 
-	if (type !== 'FREE_HIT') {
+	if (!hasFreeHit) {
 		// If editing team, all selections should be updated, except if it's for FREE HIT booster. (only 1 gameday!)
 		weekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 		allWithValues = allWithValues!.flatMap((p: any) => weekIds.map(wId => ({ ...p, weekId: wId })));
@@ -457,7 +454,7 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 		prisma.audit.create({
 			data: {
 				userId: req.user.id,
-				action: `EDIT_TEAM_${type}`,
+				action: `EDIT_TEAM_${hasFreeHit ? 'FREE_HIT' : 'BEFORE_START'}`,
 				params: JSON.stringify({
 					userId: req.user.id,
 					selections: allWithValues,
