@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { GeneralClubWinnerSchema } from "../types/body-schema";
 import { RequireUser } from "../middleware/RequireUser";
-import { GeneralInfoHandler, GetUserOverview, PostClubWinnerHandler } from "../controllers/General";
+import { GeneralInfoHandler, GetAuditHandler, GetUserOverview, PostClubWinnerHandler } from "../controllers/General";
 
 export const AdminGeneralRouter: FastifyPluginAsync = async server => {
 	server.route({
@@ -22,5 +22,11 @@ export const AdminGeneralRouter: FastifyPluginAsync = async server => {
 		url: '/users',
 		preHandler: RequireUser,
 		handler: GetUserOverview
+	});
+	server.route({
+		method: "GET",
+		url: '/audit/:id',
+		preHandler: RequireUser,
+		handler: GetAuditHandler
 	});
 }

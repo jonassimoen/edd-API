@@ -30,6 +30,7 @@ export const GetUserOverview = async(req: any, rep: any) => {
 	const [users, teamsWithActiveBoosters, audits] = await Promise.all([
 		prisma.user.findMany({
 			select: {
+				id: true,
 				email: true,
 				firstName: true,
 				lastName: true,
@@ -62,7 +63,20 @@ export const GetUserOverview = async(req: any, rep: any) => {
 			}
 		}),
 		prisma.audit.findMany({
-			take: 100
+			take: 50,
+			select: {
+				id: true,
+				timestamp: true,
+				action: true,
+				user: {
+					select: {
+						email: true,
+					}
+				},
+			},
+			orderBy: {
+				timestamp: "desc"
+			}
 		})
 	]);
 
@@ -74,4 +88,17 @@ export const GetUserOverview = async(req: any, rep: any) => {
 		})),
 		audits
 	})
+}
+
+export const GetAuditHandler = async(req: any, rep: any) => {
+	const audit = await prisma.audit.findFirst({
+		where: {
+			id: +req.params.id
+		},
+		select: {
+			action: true,
+			params: true,
+		}
+	});
+	rep.send(audit);
 }
