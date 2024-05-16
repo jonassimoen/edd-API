@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from "fastify";
 import { GoogleAuthHandler } from "../controllers/UserAuth";
-import { GetProfileHandler, GetTeamsHandler, LogoutHandler, PaymentIntentHandler, PaymentResultHandler, PutUserHandler } from "../controllers/User";
+import { GetProfileHandler, GetTeamsHandler, LogoutHandler, PaymentIntentHandler, PaymentResultHandler } from "../controllers/User";
 import { RequireUser } from "../middleware/RequireUser";
 
 export const UserRouter: FastifyPluginAsync = async server => {
@@ -13,6 +13,7 @@ export const UserRouter: FastifyPluginAsync = async server => {
 		server.route({
 				method: "POST",
 				url: '/logout',
+				preHandler: RequireUser,
 				handler: LogoutHandler
 		});
 
@@ -26,12 +27,14 @@ export const UserRouter: FastifyPluginAsync = async server => {
 		server.route({
 				method: "POST",
 				url: '/pay',
+				preHandler: RequireUser,
 				handler: PaymentIntentHandler,
 		});
 
 		server.route({
 				method: "GET",
 				url: '/payment-result',
+				preHandler: RequireUser,
 				handler: PaymentResultHandler,
 				schema: {
 					querystring: {
@@ -40,13 +43,6 @@ export const UserRouter: FastifyPluginAsync = async server => {
 						redirect_status: {type: "string"},
 					}
 				}
-		});
-
-		server.route({
-				method: "PUT",
-				url: '/',
-				preHandler: RequireUser,
-				handler: PutUserHandler
 		});
 
 		server.route({

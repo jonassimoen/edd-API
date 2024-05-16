@@ -64,17 +64,6 @@ export const PaymentResultHandler = async (req: any, rep: any) => {
 		);
 }
 
-export const PutUserHandler = async(req: any, rep: any) => {
-	const user = await prisma.user.update({
-		where: {
-				id: req.user.id
-		},
-		data: {
-
-		}
-	})
-}
-
 export const GetTeamsHandler = async (req: any, rep: any) => {
 		const user = await prisma.user.findUnique({
 				cacheStrategy: {
@@ -101,5 +90,5 @@ export const GetTeamsHandler = async (req: any, rep: any) => {
 						}
 				}
 		})
-		rep.send({teams, user});		
+		rep.send({teams, user});
 }
