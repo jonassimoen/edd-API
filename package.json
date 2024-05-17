@@ -29,6 +29,7 @@
     "fastify-list-routes": "^1.0.0",
     "fastify-metrics": "^10.6.0",
     "fastify-stripe": "^2.4.1",
+    "firebase-admin": "^12.1.0",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
