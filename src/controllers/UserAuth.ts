@@ -19,6 +19,9 @@ const refreshTokenCookieOptions: CookieSerializeOptions = {
 };
 
 export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
+	if(req.query.error) {
+		rep.redirect(process.env.WEBAPP_URL);
+	}
 	const code = req.query.code as string
 	try {
 		const { id_token, access_token } = await getGoogleOAuthTokens({ code });

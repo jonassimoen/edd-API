@@ -6,7 +6,7 @@ declare type RequestWithUser = FastifyRequest & {
 }
 
 type AccessTokenRequest = FastifyRequest<{
-		Querystring: { code: string };
+		Querystring: { code?: string, error?: string };
 }>;
 
 declare type Reply = FastifyReply & {}
