@@ -19,7 +19,6 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 	})).length;
 
 	const matchdayFilter = req.query.matchday ? { id: { equals: +req.query.matchday } } : { validated: true }
-	console.log(matchdayFilter);
 	
 	const players = await prisma.player.findMany({
 		cacheStrategy: {
@@ -361,7 +360,6 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 	}
 	const converted = res.data.response.map((resp: any) => {
 		return resp.players.map((player: any) => {
-			// console.log(player)
 			const stats = player.statistics[0];
 
 			return ({

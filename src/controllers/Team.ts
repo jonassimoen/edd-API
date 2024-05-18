@@ -18,7 +18,6 @@ const GetPlayerByIds = async (allPlayerIds: number[], reqBody: any, weekId: numb
 			value: true,
 		},
 	});
-	console.log(allPlayers);
 
 	// Business rules checks
 	// 1. Correct positions
@@ -419,7 +418,6 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 	]);
 
 	const hasFreeHit = team?.freeHit && (team?.freeHit == weekId)
-	console.log(team);
 
 	if((weekId > +(process.env.OFFICIAL_START_WEEK || 0)) && !hasFreeHit) {
 		throw new HttpError("Editing is not allowed anymore.", 400);
