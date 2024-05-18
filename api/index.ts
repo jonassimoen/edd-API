@@ -1,14 +1,16 @@
 import fastify from "fastify";
 import cookies from "@fastify/cookie";
 import cors from "@fastify/cors";
+import { applicationDefault, initializeApp } from "firebase-admin/app";
+import admin from "firebase-admin";
 import { AdminRouter, PublicRouter } from "../src/routers/Main";
 import HttpError from "../src/utils/HttpError";
 
-import dotenv from "dotenv";
 import { deserializeUser } from "../src/utils/DeserializeUser";
 import fastifyStatic from "@fastify/static";
 import path from "path";
 import _default from "fastify-metrics";
+import dotenv from "dotenv";
 dotenv.config();
 
 export const server = fastify({
@@ -16,6 +18,13 @@ export const server = fastify({
     level: "info",
   },
   disableRequestLogging: true,
+});
+
+
+export const app = initializeApp({
+  credential: admin.credential.cert(JSON.parse(
+    process.env.FIREBASE_ACCOUNT_KEY as string
+  ))
 });
 
 server.addHook("preHandler", deserializeUser);

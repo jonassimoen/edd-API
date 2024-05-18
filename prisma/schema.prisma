@@ -47,8 +47,10 @@ model User {
   role      Int
   payed     Boolean? @default(false)
 
-  teams Team[]
-  Audit Audit[]
+  teams             Team[]
+  Audit             Audit[]
+  NotificationToken NotificationToken[]
+  Article           Article[]
 }
 
 model Player {
@@ -120,7 +122,7 @@ model Statistic {
   blocks            Int     @default(0)
   interceptions     Int     @default(0)
   tackles           Int     @default(0)
-  lineClearances  Int @default(0)
+  lineClearances    Int     @default(0)
   // Dribbles
   dribblesAttempted Int     @default(0)
   dribblesSuccess   Int     @default(0)
@@ -312,6 +314,27 @@ model Audit {
   timestamp DateTime
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model NotificationToken {
+  id        Int      @id @default(autoincrement())
+  token     String
+  timestamp DateTime
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model Article {
+  id               Int       @id @default(autoincrement())
+  slug             String
+  title            String
+  description      String
+  imageUrl         String?
+  readMore         Boolean?
+  timestampCreated DateTime
+  timestampUpdated DateTime?
+  author           User      @relation(fields: [authorId], references: [id])
+  authorId         Int
 }
 
 // model WeeksOnTeams {

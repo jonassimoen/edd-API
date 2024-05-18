@@ -9,6 +9,27 @@ export const GeneralClubWinnerSchema = {
   },
 };
 
+export const PostTokenSchema = {
+  body: {
+    type: "object",
+    properties: {
+      token: { type: "string" },
+    },
+  },
+}
+
+export const PostNotificationSchema = {
+  body: {
+    type: "object",
+    properties: {
+      title: { type: "string" },
+      body: { type: "string" },
+      link: { type: "string" },
+      photo: { type: "string" },
+    },
+  },
+}
+
 export const AddTeamSchema = {
   body: {
     type: "object",

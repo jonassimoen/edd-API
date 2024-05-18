@@ -19,6 +19,9 @@ const refreshTokenCookieOptions: CookieSerializeOptions = {
 };
 
 export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
+	if(req.query.error) {
+		rep.redirect(process.env.WEBAPP_URL);
+	}
 	const code = req.query.code as string
 	try {
 		const { id_token, access_token } = await getGoogleOAuthTokens({ code });
@@ -51,7 +54,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
 		const refreshToken = signJwt({ ...user }, { expiresIn: "30d" });
 		rep.setCookie("token", accessToken, accessTokenCookieOptions);
 		rep.setCookie("refreshToken", refreshToken, refreshTokenCookieOptions);
-		rep.redirect(`${process.env.WEBAPP_URL}/login/callback?${qs.stringify({ token: accessToken, refreshToken: refreshToken, welcomeRedirect: process.env.REDIR_TO_WELCOME && firstSignIn })}`);
+		rep.redirect(`${process.env.WEBAPP_URL}/login/callback?${qs.stringify({ token: accessToken, refreshToken: refreshToken })}`);
 
 
 		// rep.send(googleUserInfo)

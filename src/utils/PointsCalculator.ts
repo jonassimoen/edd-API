@@ -222,8 +222,5 @@ export const calculatePoints = (playerStat: Statistic, positionId: number | null
 	// Clean sheet
 	tempPoints += (playerStat.minutesPlayed >= 60 && (playerStat.goalsAgainst || 0 ) === 0) ? PPS.CLEAN_SHEET[positionId] : 0;
 	
-	if(playerStat.playerId == 47) {
-		console.log(tempPoints);
-	}
 	return tempPoints;
 }

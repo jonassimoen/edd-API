@@ -83,7 +83,6 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 			points: true
 		}
 	});
-	console.log("teamPoints",teamPoints);
 
 	const teamsWithSelections = await prisma.team.findMany({
 		cacheStrategy: {

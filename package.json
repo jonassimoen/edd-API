@@ -9,7 +9,7 @@
     "start": "node dist/api/index.js",
     "lint": "eslint --ext js,jsx,ts,tsx,json ./src",
     "lint:fix": "eslint --ext js,jsx,ts,tsx,json ./src --fix",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --no-engine"
   },
   "dependencies": {
     "@fastify/cookie": "^9.3.1",
@@ -29,6 +29,7 @@
     "fastify-list-routes": "^1.0.0",
     "fastify-metrics": "^10.6.0",
     "fastify-stripe": "^2.4.1",
+    "firebase-admin": "^12.1.0",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.21",
