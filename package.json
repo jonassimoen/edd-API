@@ -9,7 +9,7 @@
     "start": "node dist/api/index.js",
     "lint": "eslint --ext js,jsx,ts,tsx,json ./src",
     "lint:fix": "eslint --ext js,jsx,ts,tsx,json ./src --fix",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --no-engine"
   },
   "dependencies": {
     "@fastify/cookie": "^9.3.1",
