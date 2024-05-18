@@ -11,6 +11,7 @@ import { AdminWeekRouter, PublicWeekRouter } from './Week';
 import { PublicPageRouter } from './Page';
 import { AdminGeneralRouter } from './Admin';
 import { NotificationRouter } from './Notification';
+import { PublicNewsRouter } from './News';
 
 export const PublicRouter: FastifyPluginAsync = async server => {
 	server.register(NotificationRouter, { prefix: '/notifications' })
@@ -24,6 +25,7 @@ export const PublicRouter: FastifyPluginAsync = async server => {
 	server.register(PublicWeekRouter, { prefix: '/weeks' })
 	server.register(PublicPlayerStatisticRouter, { prefix: '/player-stats' })
 	server.register(PublicPageRouter, {prefix: '/pages'})
+	server.register(PublicNewsRouter, {prefix: '/news'})
 }
 
 export const AdminRouter: FastifyPluginAsync = async server => {
