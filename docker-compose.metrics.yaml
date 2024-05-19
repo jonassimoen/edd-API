@@ -3,6 +3,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    container_name: edd_prometheus
     volumes:
       - prometheus_data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -10,9 +11,12 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - '9090:9090'
+    networks:
+      - edd-metrics-nw
 
   grafana:
     image: grafana/grafana:latest
+    container_name: edd_grafana
     volumes:
       - grafana_data:/var/lib/grafana
       # - ./grafana/provisioning:/etc/grafana/provisioning
@@ -24,7 +28,12 @@ services:
       - prometheus
     ports:
       - '1234:3000'
+    networks:
+      - edd-metrics-nw
 
 volumes:
   prometheus_data: {}
   grafana_data: {}
+
+networks:
+  edd-metrics-nw:
