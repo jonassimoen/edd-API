@@ -22,7 +22,7 @@ jobs:
             sudo -i
             cd /var/www/api.dreamdraft.be
             git pull origin master
-            yarn install
-            yarn build
+            sudo /usr/local/bin/yarn install
+            sudo /usr/local/bin/yarn build
             pm2 restart api --update-env
             exit
