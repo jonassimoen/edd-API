@@ -5,7 +5,7 @@ import { signJwt } from "../utils/JWT";
 import { AccessTokenRequest } from "../types/http";
 import qs from "qs";
 
-const accessTokenCookieOptions: CookieSerializeOptions = {
+export const accessTokenCookieOptions: CookieSerializeOptions = {
 	maxAge: 900000, // 15 mins
 	httpOnly: true,
 	domain: process.env.ENV === ("production" || "prod") ? process.env.COOKIE_ORIGIN : "localhost",
@@ -13,7 +13,7 @@ const accessTokenCookieOptions: CookieSerializeOptions = {
 	path: "/",
 	secure: false,
 };
-const refreshTokenCookieOptions: CookieSerializeOptions = {
+export const refreshTokenCookieOptions: CookieSerializeOptions = {
 	...accessTokenCookieOptions,
 	maxAge: 3.154e10, // 1 year
 };

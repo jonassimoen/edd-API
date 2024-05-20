@@ -1,9 +1,10 @@
 import HttpError from "../utils/HttpError";
 import { prisma } from "../db/client";
 import qs from "qs";
+import { accessTokenCookieOptions, refreshTokenCookieOptions } from "./UserAuth";
 
 export const LogoutHandler = async (req: any, rep: any) => {
-	rep.status(200).clearCookie('token').clearCookie('refreshToken').clearCookie('accessToken')
+	rep.clearCookie('token', accessTokenCookieOptions).clearCookie('refreshToken', refreshTokenCookieOptions);
 }
 
 export const GetProfileHandler = async (req: any, rep: any) => {
