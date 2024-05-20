@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   // previewFeatures = ["metrics"]
@@ -9,20 +6,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum MatchEventType {
-  Goal
-  Assist
-  SubstituteIn
-  SubstituteOut
-  PenaltyScored
-  PenaltyMissed
-  PenaltySaved
-  YellowCard
-  SecondYellowCard
-  RedCard
-  Starting
 }
 
 enum PlayerBoosterType {
@@ -42,10 +25,9 @@ model User {
   street    String?
   streetNr  String?
   postCode  String?
-  // favoriteClubId String
-  // registerInfo String
   role      Int
   payed     Boolean? @default(false)
+  banned    Boolean? @default(false)
 
   teams             Team[]
   Audit             Audit[]
@@ -77,7 +59,6 @@ model Player {
 
   selections Selection[]
   club       Club?        @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  MatchEvent MatchEvent[]
   stats      Statistic[]
   inPlayer   Transfer[]   @relation("inPlayer")
   outPlayer  Transfer[]   @relation("outPlayer")
@@ -255,19 +236,7 @@ model Match {
   away Club? @relation(name: "awayMatch", fields: [awayId], references: [id])
 
   week       Week?        @relation(fields: [weekId], references: [id])
-  MatchEvent MatchEvent[]
   Statistic  Statistic[]
-}
-
-model MatchEvent {
-  id       Int            @id @default(autoincrement())
-  type     MatchEventType
-  matchId  Int
-  playerId Int
-  minute   Int
-
-  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
 }
 
 model Transfer {
@@ -336,70 +305,3 @@ model Article {
   author           User      @relation(fields: [authorId], references: [id])
   authorId         Int
 }
-
-// model WeeksOnTeams {
-//   week   Week @relation(fields: [weekId], references: [id])
-//   team   Team @relation(fields: [teamId], references: [id])
-//   weekId Int
-//   teamId Int
-
-//   @@id([weekId, teamId])
-// }
-
-// export interface Player {
-//   id: number
-//   name: string
-//   short: string
-//   forename: string
-//   surname: string
-//   positionId: number
-//   externalId?: number
-//   value: number
-//   ban?: number
-//   injury?: number
-//   form?: number
-//   squadDepth?: number
-//   fieldOrder: number
-//   info?: number
-//   portraitUrl: string
-//   star: number
-//   setPieces: number
-//   captain: number
-//   caps: number
-//   squadStatus?: string
-//   clubId: number
-// }
-
-// export interface Club {
-//   id: number
-//   name: string
-//   short: string
-//   styling: any
-//   externalId: number
-// }
-
-// export interface DeadlineInfo {
-//   displayWeek: number
-//   deadlineWeek: number
-//   deadlineDate: string
-//   rosterEndWeek: number
-// }
-
-// export interface Week {
-//   weekId: number
-//   roundId: any
-//   deadlineDate: string
-// }
-
-// export interface Round {
-//   roundId: any
-//   deadlineDate: string
-// }
-
-// export interface Club {
-//   id: number
-//   name: string
-//   short: string
-//   styling: any
-//   externalId: number
-// }

@@ -101,6 +101,7 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 				userId: req.user.id,
 				action: 'POST_CREATE_UPDATE',
 				params: JSON.stringify({
+					teamId: req.team.id,
 					userId: req.user.id,
 					selections: {
 						createMany: {
@@ -473,6 +474,7 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 				userId: req.user.id,
 				action: `EDIT_TEAM_${hasFreeHit ? 'FREE_HIT' : 'BEFORE_START'}`,
 				params: JSON.stringify({
+					teamId: +req.params.id,
 					userId: req.user.id,
 					selections: allWithValues,
 					budget: budget,
