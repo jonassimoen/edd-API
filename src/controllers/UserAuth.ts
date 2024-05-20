@@ -37,7 +37,13 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
 			}
 		});
 
-		let firstSignIn = false;
+		let firstSignIn = false;	
+		if( !user && (process.env.DISABLED_REGISTRATIONS === "true" || false)) {
+			return rep.redirect(`${process.env.WEBAPP_URL}/denied?${qs.stringify({ reason: "registrations-disabled" })}`);
+		}
+		if (user && user.banned) {
+			return rep.redirect(`${process.env.WEBAPP_URL}/denied?${qs.stringify({ reason: "banned" })}`);
+		}
 		if (!user) {
 			user = await prisma.user.create({
 				data: {
@@ -54,7 +60,7 @@ export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
 		const refreshToken = signJwt({ ...user }, { expiresIn: "30d" });
 		rep.setCookie("token", accessToken, accessTokenCookieOptions);
 		rep.setCookie("refreshToken", refreshToken, refreshTokenCookieOptions);
-		rep.redirect(`${process.env.WEBAPP_URL}/login/callback?${qs.stringify({ token: accessToken, refreshToken: refreshToken })}`);
+		return rep.redirect(`${process.env.WEBAPP_URL}/login/callback?${qs.stringify({ token: accessToken, refreshToken: refreshToken })}`);
 
 
 		// rep.send(googleUserInfo)

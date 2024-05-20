@@ -1,5 +1,3 @@
-import { MatchEventType } from "@prisma/client";
-
 export const GeneralClubWinnerSchema = {
   body: {
     type: "object",
@@ -142,32 +140,6 @@ export const MatchPutSchema = {
     date: { type: "string" },
     homeScore: { type: "number" },
     awayScore: { type: "number" },
-  },
-};
-
-export const MatchEventPostSchema = {
-  type: "array",
-  items: {
-    type: "object",
-    properties: {
-      type: { type: "string" },
-      matchId: { type: "number" },
-      playerId: { type: "number" },
-      minute: { type: "number" },
-    },
-  },
-};
-
-export const MatchEventPutSchema = {
-  type: "array",
-  items: {
-    type: "object",
-    properties: {
-      type: { type: "string" },
-      matchId: { type: "number" },
-      playerId: { type: "number" },
-      minute: { type: "number" },
-    },
   },
 };
 
