@@ -14,7 +14,9 @@ export const PublicPageRouter: FastifyPluginAsync = async server => {
 			}
 		}
 	});
+}
 
+export const AdminPageRouter: FastifyPluginAsync = async server => {
 	server.route({
 		method: 'POST',
 		url: '',
