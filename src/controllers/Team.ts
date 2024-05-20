@@ -317,12 +317,12 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 
 export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 	const boosterUnCC = req.body.type.charAt(0).toUpperCase() + req.body.type.slice(1);
-	const validBoosters = ["tripleCaptain","viceVictory","hiddenGem","goalRush","superSubs","freeHit"];
+	const validBoosters = ["tripleCaptain","fanFavourite","hiddenGem","goalRush","superSubs","freeHit"];
 
 	if(!validBoosters.includes(req.body.type)) 
 		throw new HttpError("Invalid booster", 404)
 
-	const isPlayerBooster = ["hiddenGem","goalRush"].includes(req.body.type);
+	const isPlayerBooster = ["hiddenGem","goalRush","fanFavourite"].includes(req.body.type);
 	const currentWeek = await upcomingWeekId();
 
 	const teamWithBoosters: { [key: string]: any } | null = await prisma.team.findFirst({
@@ -330,7 +330,7 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 			goalRush: true,
 			tripleCaptain: true,
 			hiddenGem: true,
-			viceVictory: true,
+			fanFavourite: true,
 			selections: {
 				select: {
 					playerId: true,

@@ -45,7 +45,7 @@ export const GetUserOverview = async(req: any, rep: any) => {
 					}
 				},
 				tripleCaptain: true,
-				viceVictory: true,
+				fanFavourite: true,
 				freeHit: true,
 				superSubs: true,
 				hiddenGem: true,
@@ -54,7 +54,7 @@ export const GetUserOverview = async(req: any, rep: any) => {
 			where: {
 				OR: [
 					{tripleCaptain: weekId},
-					{viceVictory: weekId},
+					{fanFavourite: weekId},
 					{freeHit: weekId},
 					{superSubs: weekId},
 					{hiddenGem: weekId},

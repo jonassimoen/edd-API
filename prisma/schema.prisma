@@ -29,7 +29,7 @@ enum PlayerBoosterType {
   HiddenGem
   GoalRush
   TripleCaptain
-  ViceVictory
+  FanFavourit
 }
 
 model User {
@@ -185,7 +185,7 @@ model Team {
   // Boosters
   freeHit       Int?
   tripleCaptain Int?
-  viceVictory   Int?
+  fanFavourite  Int?
   superSubs     Int?
   hiddenGem     Int?
   goalRush      Int?
