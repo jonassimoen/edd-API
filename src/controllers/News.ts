@@ -32,6 +32,7 @@ export const GetArticlesHandler = async (req: any, rep: any) => {
 		count: articleCount,
 	})
 }
+
 export const GetArticleHandler = async (req: any, rep: any) => {
 	const articles = await prisma.article.findFirst({
 		select: {
@@ -51,6 +52,42 @@ export const GetArticleHandler = async (req: any, rep: any) => {
 		},
 		where: {
 			slug: req.params.slug
+		}
+	});
+	rep.send(articles)
+}
+
+export const PutArticleHandler = async (req: any, rep: any) => {
+	const articles = await prisma.article.update({
+		where: {
+			id: +req.params.id
+		},
+		data: {
+			slug: req.body.slug,
+			title: req.body.title,
+			description: req.body.description,
+			imageUrl: req.body.imageUrl,
+			readMore: req.body.readMore,
+			timestampUpdated: new Date(),
+		}
+	});
+	rep.send(articles)
+}
+
+export const PostArticleHandler = async (req: any, rep: any) => {
+	const articles = await prisma.article.create({
+		data: {
+			slug: req.body.slug,
+			title: req.body.title,
+			description: req.body.description,
+			imageUrl: req.body.imageUrl,
+			readMore: req.body.readMore,
+			timestampCreated: new Date(),
+			author: {
+				connect: {
+					id: +req.user.id || 0
+				}
+			},
 		}
 	});
 	rep.send(articles)

@@ -8,10 +8,10 @@ import { AdminMatchRouter, PublicMatchRouter } from './Match';
 import { AdminMatchEventRouter, PublicMatchEventRouter } from './MatchEvent';
 import { AdminMatchStatisticRouter, PublicMatchStatisticRouter, PublicPlayerStatisticRouter } from './Statistic';
 import { AdminWeekRouter, PublicWeekRouter } from './Week';
-import { PublicPageRouter } from './Page';
+import { AdminPageRouter, PublicPageRouter } from './Page';
 import { AdminGeneralRouter } from './Admin';
 import { NotificationRouter } from './Notification';
-import { PublicNewsRouter } from './News';
+import { AdminNewsRouter, PublicNewsRouter } from './News';
 
 export const PublicRouter: FastifyPluginAsync = async server => {
 	server.register(NotificationRouter, { prefix: '/notifications' })
@@ -37,4 +37,6 @@ export const AdminRouter: FastifyPluginAsync = async server => {
 	server.register(AdminMatchEventRouter, { prefix: '/matches/:matchId/events' })
 	server.register(AdminMatchStatisticRouter, { prefix: '/matches/:matchId/stats' })
 	server.register(AdminWeekRouter, { prefix: '/weeks' })
+	server.register(AdminPageRouter, { prefix: '/pages' })
+	server.register(AdminNewsRouter, {prefix: '/news'})
 }
