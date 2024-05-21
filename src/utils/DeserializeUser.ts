@@ -52,7 +52,7 @@ export const deserializeUser = async(req: any, rep: any) => {
 			rep.setCookie("accessToken", newAccessToken, {
 				maxAge: 900000, // 15 mins
 				httpOnly: true,
-				domain: process.env.ENV === ("production" || "prod") ? process.env.COOKIE_ORIGIN : "localhost",
+				domain:  ["production", "staging"].includes(process.env.ENV || "dev") ? process.env.COOKIE_ORIGIN : "localhost",
 				path: "/",
 				sameSite: "strict",
 				secure: false,
