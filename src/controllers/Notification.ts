@@ -3,7 +3,7 @@ import { app } from "../../api/index"
 import { prisma } from "../db/client";
 
 export const RegisterTokenHandler = async(req: any, rep: any) => {
-	getMessaging(app).subscribeToTopic(req.body.token, "edd-app");
+	getMessaging(app).subscribeToTopic(req.body.token, `edd-app-${process.env.ENV}`);
 	const token = await prisma.notificationToken.create({
 		data: {
 			token: req.body.token,
