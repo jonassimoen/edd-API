@@ -188,49 +188,52 @@ export const DeleteWeekHandler = async (req: any, rep: any) => {
 
 }
 export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
-	const weeks = await prisma.week.findMany({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		orderBy: {
-			id: 'asc'
-		}
-	});
-	const deadlineWeek = await prisma.week.findFirst({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		where: {
-			deadlineDate: {
-				gt: new Date()
+	const [weeks, deadlineWeek, displayWeek] = await Promise.all([
+		await prisma.week.findMany({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
+			},
+			orderBy: {
+				id: 'asc'
 			}
-		},
-		orderBy: {
-			deadlineDate: 'asc',
-		}
-	});
-	const displayWeek = await prisma.week.findFirst({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
-		where: {
-			deadlineDate: {
-				lt: deadlineWeek?.deadlineDate
+		}),
+		await prisma.week.findFirst({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
+			},
+			where: {
+				deadlineDate: {
+					gt: new Date()
+				}
+			},
+			orderBy: {
+				deadlineDate: 'asc',
 			}
-		},
-		orderBy: {
-			deadlineDate: 'desc'
-		}
-	});
+		}),
+		await prisma.week.findFirst({
+			cacheStrategy: {
+				ttl: 30,
+				swr: 60,
+			},
+			where: {
+				deadlineDate: {
+					lt: new Date()
+				}
+			},
+			orderBy: {
+				deadlineDate: 'desc'
+			},
+		})
+	]);
 	rep.send({
 		deadlineInfo: {
 			deadlineDate: deadlineWeek?.deadlineDate || 0,
 			deadlineWeek: deadlineWeek?.id || 0,
 			displayWeek: displayWeek?.id || deadlineWeek?.id,
 			endWeek: weeks[weeks.length - 1].id,
+			transfersThisWeek: deadlineWeek?.maxTransfers
 		},
 		weeks,
 		rft: (await prisma.refreshTime.findFirst())?.time

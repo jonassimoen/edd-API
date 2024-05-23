@@ -559,7 +559,23 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 
 export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 	const transfers = req.body.transfers;
-	const [weekId, lastWeekId] = await Promise.all([upcomingWeekId(), finalWeekId()]);
+	const [weekId, lastWeekId, maxTransfersThisWeek] = await Promise.all([
+		upcomingWeekId(), 
+		finalWeekId(),
+		(await prisma.week.findFirst({
+			select: {
+				maxTransfers: true
+			},
+			where: {
+				deadlineDate: {
+						gte: new Date()
+				}
+			},
+			orderBy: {
+					deadlineDate: 'asc',
+			}
+		}))?.maxTransfers
+	]);
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 
 	if (transfers) {
@@ -570,7 +586,7 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 			}
 		});
 
-		if(process.env.MAX_TRANSFERS && (transfers.length + alreadyPerformedTransfers.length) > +process.env.MAX_TRANSFERS) {
+		if(maxTransfersThisWeek && (transfers.length + alreadyPerformedTransfers.length) > maxTransfersThisWeek) {
 			rep.status(403).send({ msg: "Whoaaa, too much transfers!" });
 			return;
 		}
