@@ -1,5 +1,8 @@
 import { prisma } from "../db/client"
 import { ProcessState } from "@prisma/client";
+import { validateStartingLineup } from "../utils/Common";
+import HttpError from "../utils/HttpError";
+import { isValidLineup } from "../utils/FootballPicker";
 
 export const GetWeeksHandler = async (req: any, rep: any) => {
 	const weeks = await prisma.week.findMany({
@@ -110,8 +113,16 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 	});
 	try {
 		await prisma.$transaction(async (prisma) => {
-
 			for (const team of teamsWithSelections) {
+				const starting = team.selections.filter((sel: any) => sel.starting);
+				const startingLineup = starting.reduce((res: number[], cur: any) => {
+					res[cur.positionId] = (res[cur.positionId] || 0) + 1;
+					return res;
+				}, [0,0,0,0,0])
+
+				if(!validateStartingLineup(startingLineup)) {
+					throw new HttpError(`Invalid starting lineup for team ${team.id}`, 500);
+				}
 				const startersNotPlaying = team.selections.filter((sel: any) => sel.starting && !sel.played);
 				const benchersPlayed = team.selections.filter((sel: any) => !sel.starting && sel.played);
 
@@ -120,7 +131,6 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 
 				console.log(`Team #${team.id} has ${team.selections.length} selections in week ${weekId}, ${startersNotPlaying.length} starters did not play, ${benchersPlayed.length} bench players did play`);
 				for (const starterNotPlayed of startersNotPlaying) {
-
 					// keeper changing
 					if (starterNotPlayed.player.positionId === 1) {
 						if (benchedKeeper?.played) {
@@ -135,26 +145,30 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 							});
 						}
 					}
-
 					else if (benchedNonKeepers.length > 0) {
 						// other player changing
-						// TODO: check if valid lineup
 						const substitutePlayer = benchedNonKeepers.shift();
-						console.log(`Player ${starterNotPlayed.player.short} replaced with player ${substitutePlayer?.player.short}`)
-						await prisma.selection.update({
-							where: { id: starterNotPlayed.id! },
-							data: { starting: 0, order: substitutePlayer?.order },
-						});
-						await prisma.selection.update({
-							where: { id: substitutePlayer?.id! },
-							data: { starting: 1, order: starterNotPlayed.order },
-						});
+						startingLineup[starterNotPlayed?.player.positionId || 0] -= 1;
+						startingLineup[substitutePlayer?.player.positionId || 0] += 1;
+						if(validateStartingLineup(startingLineup)) {
+							console.log(`Player ${starterNotPlayed.player.short} replaced with player ${substitutePlayer?.player.short}`)
+							await prisma.selection.update({
+								where: { id: starterNotPlayed.id! },
+								data: { starting: 0, order: substitutePlayer?.order },
+							});
+							await prisma.selection.update({
+								where: { id: substitutePlayer?.id! },
+								data: { starting: 1, order: starterNotPlayed.order },
+							});
+						} else {
+							benchedNonKeepers.unshift(substitutePlayer!);
+						}
 					}
 				}
 			}
 		});
 	} catch (err) {
-		console.error(err);
+		req.log.error(err);
 	} finally {
 		prisma.$disconnect();
 	}
@@ -233,7 +247,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 			deadlineWeek: deadlineWeek?.id || 0,
 			displayWeek: displayWeek?.id || deadlineWeek?.id,
 			endWeek: weeks[weeks.length - 1].id,
-			transfersThisWeek: deadlineWeek?.maxTransfers
+			freeTransfers: deadlineWeek?.maxTransfers
 		},
 		weeks,
 		rft: (await prisma.refreshTime.findFirst())?.time

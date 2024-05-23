@@ -184,6 +184,7 @@ model Week {
   name         String?
   validated    Boolean     @default(false)
   maxTransfers Int         @default(2)
+  maxSameClub  Int         @default(3)
   Team         Team[]
   Match        Match[]
   Selection    Selection[]
