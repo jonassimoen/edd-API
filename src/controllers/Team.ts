@@ -1,24 +1,38 @@
-import { finalWeekId, upcomingWeekId } from '../utils/Common';
+import { finalWeekId, upcomingWeekId, validateStartingLineup } from '../utils/Common';
 import { prisma } from "../db/client"
 import HttpError from "../utils/HttpError";
 import { max } from "lodash";
 import { isValidLineup } from '../utils/FootballPicker';
 
-const GetPlayerByIds = async (allPlayerIds: number[], reqBody: any, weekId: number, skipReturn?: boolean) => {
-	const allPlayers = await prisma.player.findMany({
-		where: {
-			id: {
-				in: allPlayerIds
+const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: number, skipReturn?: boolean) => {
+	const [allPlayers, maxSameClub] = await Promise.all([
+		await prisma.player.findMany({
+			where: {
+				id: {
+					in: allPlayerIds
+				}
+			},
+			select: {
+				id: true,
+				clubId: true,
+				positionId: true,
+				value: true,
+			},
+		}),
+		(await prisma.week.findFirst({
+			select: {
+				maxSameClub: true
+			},
+			where: {
+				deadlineDate: {
+						gte: new Date()
+				}
+			},
+			orderBy: {
+					deadlineDate: 'asc',
 			}
-		},
-		select: {
-			id: true,
-			clubId: true,
-			positionId: true,
-			value: true,
-		},
-	});
-
+		}))?.maxSameClub || 0
+	]) ;
 	// Business rules checks
 	// 1. Correct positions
 	const pos = allPlayers.reduce((res: number[], cur: any) => {
@@ -27,13 +41,13 @@ const GetPlayerByIds = async (allPlayerIds: number[], reqBody: any, weekId: numb
 	}, [0,0,0,0,0])
 	if(pos.toString() !== "0,2,5,5,3") 
 		throw new HttpError("Wrong selection of positions", 403);
-	// 2. Max 3 players from club
+	// 2. Max players from same club
 	const clubs = allPlayers.reduce((res: number[], cur: any) => {
 		res[cur.clubId] = (res[cur.clubId] || 0) + 1;
 		return res;
 	}, [])
-	if(clubs.some(count => count > 3)) {
-		throw new HttpError("Too much player of same club", 403);
+	if(clubs.some(count => count > maxSameClub)) {
+		throw new HttpError("Too much players of the same club", 403);
 	}
 	// 3. Within budget
 	const totalValue = allPlayers.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
@@ -42,7 +56,7 @@ const GetPlayerByIds = async (allPlayerIds: number[], reqBody: any, weekId: numb
 		throw new HttpError(`Invalid budget (${budget})`, 403);
 	}
 	// 4. Valid position
-	if(!isValidLineup(allPlayers.filter(p => allPlayerIds.slice(0,11).indexOf(p.id) > -1 ))) {
+	if(validateStartingLineup(allPlayerIds.slice(0,11))) {
 		throw new HttpError('Invalid lineup', 403);
 	}
 	if(skipReturn) {
@@ -70,7 +84,7 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 
 	const [weekId, lastWeekId] = await Promise.all([upcomingWeekId(), finalWeekId()]);
 
-	const allWithValues = await GetPlayerByIds(allIds, req.body, weekId);
+	const allWithValues = await CheckValidTeam(allIds, req.body, weekId);
 
 	const totalValue = allWithValues!.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
 	const budget = 100 - totalValue;
@@ -426,7 +440,7 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 
 	const allIds = req.body.starting.concat(req.body.bench);
 
-	let allWithValues = await GetPlayerByIds(allIds, req.body, weekId);
+	let allWithValues = await CheckValidTeam(allIds, req.body, weekId);
 	let weekIds = [weekId];
 
 	const totalValue = allWithValues!.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
@@ -500,7 +514,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 		throw new HttpError("Invalid team: invalid number of players", 400);
 	}
 	const allIds = req.body.starting.concat(req.body.bench);
-	const allWithValues = await GetPlayerByIds(allIds, req.body, weekId);
+	const allWithValues = await CheckValidTeam(allIds, req.body, weekId);
 
 	try {
 		await prisma.$transaction( async (prisma) => {
@@ -559,7 +573,10 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 
 export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 	const transfers = req.body.transfers;
-	const [weekId, lastWeekId] = await Promise.all([upcomingWeekId(), finalWeekId()]);
+	const [weekId, lastWeekId] = await Promise.all([
+		upcomingWeekId(), 
+		finalWeekId()
+	]);
 	const remainingWeekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
 
 	if (transfers) {
@@ -569,11 +586,6 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 				weekId,
 			}
 		});
-
-		if(process.env.MAX_TRANSFERS && (transfers.length + alreadyPerformedTransfers.length) > +process.env.MAX_TRANSFERS) {
-			rep.status(403).send({ msg: "Whoaaa, too much transfers!" });
-			return;
-		}
 		const allTfIds = (await prisma.selection.findMany({
 				where: {
 					teamId: +req.params.id,
@@ -581,12 +593,15 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 				},
 				select: {
 					playerId: true
+				},
+				orderBy: {
+					order: 'asc'
 				}
 			})).map((n: { playerId: number; }) => {
 				const tf = transfers.find((t: any) => t.outId === n.playerId);
 				return tf ? tf.inId : n.playerId;
 			});
-		await GetPlayerByIds(allTfIds, req.body, weekId, true);
+		await CheckValidTeam(allTfIds, req.body, weekId, true);
 
 		const transferCreateInput = transfers.map((transfer: any) => {
 			return {

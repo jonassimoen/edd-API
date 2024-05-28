@@ -14,9 +14,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const server = fastify({
-  logger: {
-    level: "info",
-  },
+  logger: true,
   disableRequestLogging: true,
 });
 
@@ -36,7 +34,7 @@ server.register(require("fastify-stripe"), {
 
 server.register(cors, {
   origin:
-    process.env.ENV === ("production" || "prod")
+    ["production", "staging"].includes(process.env.ENV || "dev")
       ? process.env.CORS_ORIGIN
       : "*",
   credentials: true,
@@ -65,6 +63,7 @@ server.get("/metrics/prisma", async (req: any, res: any) => {
 })
 
 server.setErrorHandler((err, req, rep) => {
+  req.log.error(err);
   if (err instanceof HttpError) {
     rep.status(err.statusCode || 500).send({
       statusCode: err.statusCode || 500,

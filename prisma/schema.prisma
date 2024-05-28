@@ -31,8 +31,6 @@ model User {
 
   teams             Team[]
   Audit             Audit[]
-  NotificationToken NotificationToken[]
-  Article           Article[]
 }
 
 model Player {
@@ -58,10 +56,10 @@ model Player {
   value       Float?
 
   selections Selection[]
-  club       Club?        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club       Club?       @relation(fields: [clubId], references: [id], onDelete: Cascade)
   stats      Statistic[]
-  inPlayer   Transfer[]   @relation("inPlayer")
-  outPlayer  Transfer[]   @relation("outPlayer")
+  inPlayer   Transfer[]  @relation("inPlayer")
+  outPlayer  Transfer[]  @relation("outPlayer")
 }
 
 model Statistic {
@@ -182,9 +180,11 @@ model Week {
   id           Int         @id @default(autoincrement())
   deadlineDate DateTime    @db.Timestamptz()
   name         String?
+  validated    Boolean     @default(false)
+  maxTransfers Int         @default(2)
+  maxSameClub  Int         @default(3)
   Team         Team[]
   Match        Match[]
-  validated    Boolean     @default(false)
   Selection    Selection[]
   Transfer     Transfer[]
 }
@@ -225,8 +225,8 @@ model Match {
   // roundId Int
   date       DateTime @db.Timestamptz()
   postponed  Int?
-  homeScore  Int?     @default(-1)
-  awayScore  Int?     @default(-1)
+  homeScore  Int?     @default(0)
+  awayScore  Int?     @default(0)
   homeId     Int?
   awayId     Int?
 
@@ -235,8 +235,8 @@ model Match {
   home Club? @relation(name: "homeMatch", fields: [homeId], references: [id])
   away Club? @relation(name: "awayMatch", fields: [awayId], references: [id])
 
-  week       Week?        @relation(fields: [weekId], references: [id])
-  Statistic  Statistic[]
+  week      Week?       @relation(fields: [weekId], references: [id])
+  Statistic Statistic[]
 }
 
 model Transfer {
@@ -283,25 +283,4 @@ model Audit {
   timestamp DateTime
 
   user User @relation(fields: [userId], references: [id])
-}
-
-model NotificationToken {
-  id        Int      @id @default(autoincrement())
-  token     String
-  timestamp DateTime
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-}
-
-model Article {
-  id               Int       @id @default(autoincrement())
-  slug             String
-  title            String
-  description      String
-  imageUrl         String?
-  readMore         Boolean?
-  timestampCreated DateTime
-  timestampUpdated DateTime?
-  author           User      @relation(fields: [authorId], references: [id])
-  authorId         Int
 }

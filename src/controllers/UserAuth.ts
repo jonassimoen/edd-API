@@ -8,7 +8,7 @@ import qs from "qs";
 export const accessTokenCookieOptions: CookieSerializeOptions = {
 	maxAge: 900000, // 15 mins
 	httpOnly: true,
-	domain: process.env.ENV === ("production" || "prod") ? process.env.COOKIE_ORIGIN : "localhost",
+	domain: ["production", "staging"].includes(process.env.ENV || "dev") ? process.env.COOKIE_ORIGIN : "localhost",
 	sameSite: "lax",
 	path: "/",
 	secure: false,
