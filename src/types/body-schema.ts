@@ -259,26 +259,3 @@ export const PutPageSchema = {
     },
   },
 };
-
-export const PutArticleSchema = {
-  type: "object",
-  properties: {
-    id: { type: "number" },
-    slug: { type: "string" },
-    title: { type: "string" },
-    description: { type: "string" },
-    imageUrl: { type: "string" },
-    readMore: { type: "boolean" },
-  },
-};
-
-export const PostArticleSchema = {
-  type: "object",
-  properties: {
-    slug: { type: "string" },
-    title: { type: "string" },
-    description: { type: "string" },
-    imageUrl: { type: "string" },
-    readMore: { type: "boolean" },
-  },
-};
