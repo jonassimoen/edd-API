@@ -1,4 +1,4 @@
-import { SavePlayersToJson, finalWeekId, upcomingWeekId, validateStartingLineup } from '../utils/Common';
+import { finalWeekId, upcomingWeekId, validateStartingLineup } from '../utils/Common';
 import { prisma } from "../db/client"
 import HttpError from "../utils/HttpError";
 import { max } from "lodash";
@@ -50,6 +50,7 @@ const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: numb
 		throw new HttpError("Too much players of the same club", 403);
 	}
 	// 3. Within budget
+	console.log(allPlayers);
 	const totalValue = allPlayers.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
 	const budget = 100 - totalValue;
 	if (budget <= 0) {
@@ -133,7 +134,6 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 			}
 		}),
 	])
-	SavePlayersToJson();
 	rep.send({
 		user: team.user,
 		team: {
@@ -503,7 +503,6 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 			}
 		})
 	]);
-	SavePlayersToJson();
 	rep.send({
 		message: "Team successfully updated."
 	});
@@ -647,7 +646,6 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 				}
 			});
 		});
-		SavePlayersToJson();
 		rep.send({ msg: "Transfers toegekend" });
 	} else {
 		rep.status(406).send({ msg: "No transfers included." });
