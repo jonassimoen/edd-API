@@ -1,5 +1,6 @@
 import { Player } from "@prisma/client";
 import { prisma } from "../db/client"
+import * as fs from "fs";
 
 export const upcomingWeekId = async () => {
 	const week = await prisma.week.findFirst({
@@ -35,4 +36,12 @@ export const validateStartingLineup = (starting: number[]) => {
 			((starting[2] >= 3) && (starting[2] <= 5)) &&		// 3-5 DEF
 			((starting[3] >= 3) && (starting[3] <= 5)) && 		// 3-5 MID
 			((starting[4] >= 1) && (starting[4] <= 3))			// 1-3 FOR
+}
+
+export const SavePlayersToJson = async () => {
+	const players = await prisma.player.findMany({});
+	
+	await fs.writeFile('static/players.json', JSON.stringify(players), (err) => {
+		if (err) throw err;
+	});
 }

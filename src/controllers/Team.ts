@@ -1,4 +1,4 @@
-import { finalWeekId, upcomingWeekId, validateStartingLineup } from '../utils/Common';
+import { SavePlayersToJson, finalWeekId, upcomingWeekId, validateStartingLineup } from '../utils/Common';
 import { prisma } from "../db/client"
 import HttpError from "../utils/HttpError";
 import { max } from "lodash";
@@ -103,7 +103,8 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 				value: totalValue,
 				valid: true,
 				created: new Date(Date.now()),
-				name: req.body.teamName
+				name: req.body.teamName,
+				weekId
 			},
 			include: {
 				selections: true,
@@ -130,8 +131,9 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 				}),
 				timestamp: new Date().toISOString(),
 			}
-		})
+		}),
 	])
+	SavePlayersToJson();
 	rep.send({
 		user: team.user,
 		team: {
@@ -501,6 +503,7 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 			}
 		})
 	]);
+	SavePlayersToJson();
 	rep.send({
 		message: "Team successfully updated."
 	});
@@ -644,6 +647,7 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 				}
 			});
 		});
+		SavePlayersToJson();
 		rep.send({ msg: "Transfers toegekend" });
 	} else {
 		rep.status(406).send({ msg: "No transfers included." });

@@ -54,6 +54,7 @@ model Player {
   star        Int?
   surname     String?
   value       Float?
+  pSelections Int? @default(0)
 
   selections Selection[]
   club       Club?       @relation(fields: [clubId], references: [id], onDelete: Cascade)

@@ -9,6 +9,9 @@ export const GetPagesHandler = async (req: any, rep: any) => {
 		},
 		include: {
 			translation: true
+		},
+		orderBy: {
+			id: 'asc'
 		}
 	});
 
@@ -23,6 +26,9 @@ export const GetPageHandler = async (req: any, rep: any) => {
 		},
 		include: {
 			translation: true
+		},
+		orderBy: {
+			id: 'asc'
 		}
 	});
 

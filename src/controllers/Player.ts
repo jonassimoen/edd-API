@@ -1,8 +1,5 @@
 import { prisma } from "../db/client";
 import { fetchPlayers, fetchPlayersPerClub } from "../utils/ExternalAPI";
-import * as fs from "fs";
-import axios from "axios";
-import path from "path";
 import HttpError from "../utils/HttpError";
 
 export const GetPlayersHandler = async (req: any, rep: any) => {

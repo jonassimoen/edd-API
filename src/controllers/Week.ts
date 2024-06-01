@@ -247,7 +247,8 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 			deadlineWeek: deadlineWeek?.id || 0,
 			displayWeek: displayWeek?.id || deadlineWeek?.id,
 			endWeek: weeks[weeks.length - 1].id,
-			freeTransfers: deadlineWeek?.maxTransfers
+			fT: deadlineWeek?.maxTransfers,
+			sC: deadlineWeek?.maxSameClub,
 		},
 		weeks,
 		rft: (await prisma.refreshTime.findFirst())?.time
