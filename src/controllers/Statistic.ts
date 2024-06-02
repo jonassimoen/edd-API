@@ -161,7 +161,11 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const playersWithCalculatedPoints = req.body.stats.map((stat: any) => {
 			const player = playersWithPositionIds.find((player: any) => player.id === stat.playerId);
-			const calculatedPoints = calculatePoints(stat, player?.positionId );
+			const statGoalsAgainst = {
+				...stat, 
+				goalsAgainst: stat.red ? req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm).length : req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm && stat.out >= gm).length
+			}
+			const calculatedPoints = calculatePoints(statGoalsAgainst, player?.positionId );
 			return ({
 				...stat,
 				clubId: player!.clubId,
@@ -169,18 +173,8 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 				calculatedPoints,
 			})
 		});
-		const homeP = playersWithCalculatedPoints
-			.filter((player: any) => player.clubId === match!.homeId)
-			.map((stat: any) => ({
-				...stat, 
-				goalsAgainst: stat.red ? req.body.goalMinutes.away.filter((gm: number) => stat.in <= gm).length : req.body.goalMinutes.away.filter((gm: number) => stat.in <= gm && stat.out >= gm).length
-			}));
-		const awayP = playersWithCalculatedPoints
-			.filter((player: any) => player.clubId === match!.awayId)
-			.map((stat: any) => ({
-				...stat, 
-				goalsAgainst: stat.red ? req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm).length : req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm && stat.out >= gm).length
-			}));
+		const homeP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.homeId);
+		const awayP = playersWithCalculatedPoints.filter((player: any) => player.clubId === match!.awayId);
 		const subselection  = [
 			"starting", "in", "out", "minutesPlayed", "motm", 
 			"goals", "assists", "yellow", "red",
