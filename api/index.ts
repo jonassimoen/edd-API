@@ -8,9 +8,11 @@ import HttpError from "../src/utils/HttpError";
 
 import { deserializeUser } from "../src/utils/DeserializeUser";
 import fastifyStatic from "@fastify/static";
+import fastifySchedulePlugin from "@fastify/schedule";
 import path from "path";
 import _default from "fastify-metrics";
 import dotenv from "dotenv";
+import { percentageSelectionsJob } from "../src/utils/Jobs";
 dotenv.config();
 
 export const server = fastify({
@@ -27,10 +29,11 @@ export const app = initializeApp({
 
 server.addHook("preHandler", deserializeUser);
 
-server.register(require("fastify-list-routes"), { colors: true });
+// server.register(require("fastify-list-routes"), { colors: true });
 server.register(require("fastify-stripe"), {
   apiKey: process.env.STRIPE_KEY
 })
+server.register(fastifySchedulePlugin);
 
 server.register(cors, {
   origin:
@@ -82,7 +85,13 @@ server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, addr
 	console.log(`Server listening at ${address}, environment: ${process.env.ENV}`);
 });
 
+server.ready().then(
+  () => { server.scheduler.addSimpleIntervalJob(percentageSelectionsJob); }
+);
+
 export default async (req: any, res: any) => {
-  await server.ready();
+  await server.ready().then(
+    () => { server.scheduler.addSimpleIntervalJob(percentageSelectionsJob); }
+  );
   server.server.emit("request", req, res);
 };
