@@ -12,7 +12,7 @@ enum PlayerBoosterType {
   HiddenGem
   GoalRush
   TripleCaptain
-  FanFavourit
+  FanFavourite
 }
 
 model User {
