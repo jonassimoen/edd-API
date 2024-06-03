@@ -66,20 +66,22 @@ server.get("/metrics/prisma", async (req: any, res: any) => {
 })
 
 server.setErrorHandler((err, req, rep) => {
-  req.log.error(err);
   if (err instanceof HttpError) {
+    if(err.statusCode !== 401) {
+      req.log.error(err);
+    }
     rep.status(err.statusCode || 500).send({
       statusCode: err.statusCode || 500,
       message: err.message,
     });
   } else {
+    req.log.error(err);
     rep.status(500).send(err);
   }
 });
 
 server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, address) => {
 	if (err) {
-		console.error(err);
 		process.exit(1);
 	}
 	console.log(`Server listening at ${address}, environment: ${process.env.ENV}`);

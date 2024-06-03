@@ -2,9 +2,11 @@ import { finalWeekId, upcomingWeekId, validateStartingLineup } from '../utils/Co
 import { prisma } from "../db/client"
 import HttpError from "../utils/HttpError";
 import { max } from "lodash";
-import { isValidLineup } from '../utils/FootballPicker';
 
-const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: number, skipReturn?: boolean) => {
+const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: number, teamId?: number): Promise<{
+	value: number,
+	playersWithValues: any[],
+}> => {
 	const [allPlayers, maxSameClub] = await Promise.all([
 		await prisma.player.findMany({
 			where: {
@@ -17,6 +19,15 @@ const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: numb
 				clubId: true,
 				positionId: true,
 				value: true,
+				selections: {
+					select: {
+						value: true,
+					},
+					where: {
+						teamId: teamId || 0,
+						weekId,
+					}
+				}
 			},
 		}),
 		(await prisma.week.findFirst({
@@ -32,17 +43,21 @@ const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: numb
 					deadlineDate: 'asc',
 			}
 		}))?.maxSameClub || 0
-	]) ;
+	]);
+	const playerSelWithValue = allPlayers.map((p: any) => {
+		const playerSelection = p.selections && p.selections[0];
+		return {...p, value: playerSelection ? playerSelection.value : p.value };
+	});
 	// Business rules checks
 	// 1. Correct positions
-	const pos = allPlayers.reduce((res: number[], cur: any) => {
+	const pos = playerSelWithValue.reduce((res: number[], cur: any) => {
 		res[cur.positionId] = (res[cur.positionId] || 0) + 1;
 		return res;
 	}, [0,0,0,0,0])
 	if(pos.toString() !== "0,2,5,5,3") 
 		throw new HttpError("Wrong selection of positions", 403);
 	// 2. Max players from same club
-	const clubs = allPlayers.reduce((res: number[], cur: any) => {
+	const clubs = playerSelWithValue.reduce((res: number[], cur: any) => {
 		res[cur.clubId] = (res[cur.clubId] || 0) + 1;
 		return res;
 	}, [])
@@ -50,31 +65,31 @@ const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: numb
 		throw new HttpError("Too much players of the same club", 403);
 	}
 	// 3. Within budget
-	console.log(allPlayers);
-	const totalValue = allPlayers.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
+	const totalValue = playerSelWithValue.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
 	const budget = 100 - totalValue;
-	if (budget <= 0) {
+	if (budget < 0) {
 		throw new HttpError(`Invalid budget (${budget})`, 403);
 	}
 	// 4. Valid position
-	if(validateStartingLineup(allPlayerIds.slice(0,11))) {
+	if(validateStartingLineup(playerSelWithValue.reduce((res: number[], cur: any) => {
+			res[cur.positionId] = (res[cur.positionId] || 0) + 1;
+			return res;
+		}, [0,0,0,0,0]))) {
 		throw new HttpError('Invalid lineup', 403);
 	}
-	if(skipReturn) {
-		return;
-	}
-
-	return allPlayerIds.map((id: number, index: number) => {
-		const player = allPlayers.find((p) => p.id === id);
+	return {
+		value: totalValue,
+		playersWithValues: allPlayerIds.map((id: number, index: number) => {
+		const player = playerSelWithValue.find((p) => p.id === id);
 		return {
 			order: index + 1,
 			playerId: id,
 			value: player?.value || 0,
 			captain: (id === reqBody.captainId) ? 1 : (id === reqBody.viceCaptainId ? 2 : 0),
-			starting: player ? (reqBody.starting.includes(player?.id) ? 1 : 0) : 0,
+			starting: (reqBody?.starting && player) ? (reqBody.starting.includes(player?.id) ? 1 : 0) : 0,
 			weekId,
 		}
-	});
+	})};
 }
 
 export const PostAddTeamHandler = async (req: any, rep: any) => {
@@ -85,14 +100,10 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 
 	const [weekId, lastWeekId] = await Promise.all([upcomingWeekId(), finalWeekId()]);
 
-	const allWithValues = await CheckValidTeam(allIds, req.body, weekId);
+	const {value, playersWithValues} = await CheckValidTeam(allIds, req.body, weekId);
+	const allWithValuesForAllRemainingWeeks = playersWithValues!.flatMap((p: any) => Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId).map(wId => ({ ...p, weekId: wId })));
 
-	const totalValue = allWithValues!.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
-	const budget = 100 - totalValue;
-	const allWithValuesForAllRemainingWeeks = allWithValues!.flatMap((p: any) => Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId).map(wId => ({ ...p, weekId: wId })));
-
-	const [team, audit] = await prisma.$transaction([
-		prisma.team.create({
+	const team = await prisma.team.create({
 			data: {
 				userId: req.user.id,
 				selections: {
@@ -100,8 +111,8 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 						data: allWithValuesForAllRemainingWeeks,
 					}
 				},
-				budget: budget,
-				value: totalValue,
+				budget: 100 - value,
+				value: value,
 				valid: true,
 				created: new Date(Date.now()),
 				name: req.body.teamName,
@@ -111,34 +122,35 @@ export const PostAddTeamHandler = async (req: any, rep: any) => {
 				selections: true,
 				user: true,
 			}
-		}),
-		prisma.audit.create({
-			data: {
-				userId: req.user.id,
-				action: 'POST_CREATE_UPDATE',
-				params: JSON.stringify({
-					teamId: req.team.id,
+		}).then((team) => {
+			prisma.audit.create({
+				data: {
 					userId: req.user.id,
-					selections: {
-						createMany: {
-							data: allWithValuesForAllRemainingWeeks,
-						}
-					},
-					budget: budget,
-					value: totalValue,
-					valid: true,
-					created: new Date(Date.now()),
-					name: req.body.teamName
-				}),
-				timestamp: new Date().toISOString(),
-			}
-		}),
-	])
+					action: 'POST_CREATE_UPDATE',
+					params: JSON.stringify({
+						teamId: team.id,
+						userId: req.user.id,
+						selections: {
+							createMany: {
+								data: allWithValuesForAllRemainingWeeks,
+							}
+						},
+						budget: 100 - value,
+						value: value,
+						valid: true,
+						created: new Date(Date.now()),
+						name: req.body.teamName
+					}),
+					timestamp: new Date().toISOString(),
+				}
+			});
+			return team;
+		});
 	rep.send({
 		user: team.user,
 		team: {
 			id: team.id,
-			name: team.name,
+			name: team?.name,
 		},
 		status: "success"
 	});
@@ -442,20 +454,13 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 
 	const allIds = req.body.starting.concat(req.body.bench);
 
-	let allWithValues = await CheckValidTeam(allIds, req.body, weekId);
+	let {value, playersWithValues} = await CheckValidTeam(allIds, req.body, weekId, +req.params.id);
 	let weekIds = [weekId];
-
-	const totalValue = allWithValues!.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
-	const budget = 100 - totalValue;
-
-	if (budget <= 0) {
-		throw new HttpError(`Invalid team: invalid budget (${budget})`, 400);
-	}	
 
 	if (!hasFreeHit) {
 		// If editing team, all selections should be updated, except if it's for FREE HIT booster. (only 1 gameday!)
 		weekIds = Array.from(Array(lastWeekId - weekId + 1).keys()).map(x => x + weekId);
-		allWithValues = allWithValues!.flatMap((p: any) => weekIds.map(wId => ({ ...p, weekId: wId })));
+		playersWithValues = playersWithValues!.flatMap((p: any) => weekIds.map(wId => ({ ...p, weekId: wId })));
 	}
 
 	const [deletion, updatedTeam, audit] = await prisma.$transaction([
@@ -474,9 +479,11 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 			data: {
 				name: req.body.teamName,
 				valid: true,
+				budget: 100-value,
+				value: value,
 				selections: {
 					createMany: {
-						data: allWithValues!
+						data: playersWithValues!
 					}
 				}
 			},
@@ -492,9 +499,9 @@ export const PostEditTeamHandler = async (req: any, rep: any) => {
 				params: JSON.stringify({
 					teamId: +req.params.id,
 					userId: req.user.id,
-					selections: allWithValues,
-					budget: budget,
-					value: totalValue,
+					selections: playersWithValues,
+					budget: 100-value,
+					value: value,
 					valid: true,
 					created: new Date(Date.now()),
 					name: req.body.teamName
@@ -516,7 +523,7 @@ export const PostSelectionsTeamHandler = async (req: any, rep: any) => {
 		throw new HttpError("Invalid team: invalid number of players", 400);
 	}
 	const allIds = req.body.starting.concat(req.body.bench);
-	const allWithValues = await CheckValidTeam(allIds, req.body, weekId);
+	const {value, playersWithValues} = await CheckValidTeam(allIds, req.body, weekId, +req.params.id);
 
 	try {
 		await prisma.$transaction( async (prisma) => {
@@ -603,7 +610,7 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 				const tf = transfers.find((t: any) => t.outId === n.playerId);
 				return tf ? tf.inId : n.playerId;
 			});
-		await CheckValidTeam(allTfIds, req.body, weekId, true);
+		const {value, playersWithValues } = await CheckValidTeam(allTfIds, req.body, weekId, +req.params.id);
 
 		const transferCreateInput = transfers.map((transfer: any) => {
 			return {
@@ -632,6 +639,15 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 					}
 				})
 			));
+			await prisma.team.update({
+				where: {
+					id: +req.params.id,
+				},
+				data: {
+					budget: 100-value,
+					value: value,
+				}
+			})
 			await prisma.audit.create({
 				data: {
 					userId: req.user.id,

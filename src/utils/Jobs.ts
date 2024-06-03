@@ -7,19 +7,7 @@ const percentageSelectionsTask = new AsyncTask(
 		return prisma.$queryRaw`call "calculatePercentageSelections"()`.then(() => console.log("Update selections percentage successfully!"));
 	},
     (err: any) => { 
-		console.error("UPDATING PLAYER SELECTIONS WENT WRONG!")
-		prisma.audit.create({
-			data: {
-				action: "UPDATE_PSELECTION",
-				params: "WENT WRONG",
-				timestamp: new Date(),
-				user: {
-					connect: {
-						id: 1,
-					}
-				},
-			}
-		});
+		console.error("UPDATING PLAYER SELECTIONS WENT WRONG!", err)
 	}
 );
 
