@@ -203,7 +203,7 @@ export const DeleteWeekHandler = async (req: any, rep: any) => {
 }
 export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 	const [weeks, deadlineWeek, displayWeek] = await Promise.all([
-		await prisma.week.findMany({
+		prisma.week.findMany({
 			cacheStrategy: {
 				ttl: 30,
 				swr: 60,
@@ -212,7 +212,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 				id: 'asc'
 			}
 		}),
-		await prisma.week.findFirst({
+		prisma.week.findFirst({
 			cacheStrategy: {
 				ttl: 30,
 				swr: 60,
@@ -226,7 +226,7 @@ export const GetDeadlineInfoHandler = async (req: any, rep: any) => {
 				deadlineDate: 'asc',
 			}
 		}),
-		await prisma.week.findFirst({
+		prisma.week.findFirst({
 			cacheStrategy: {
 				ttl: 30,
 				swr: 60,

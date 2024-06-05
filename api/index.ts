@@ -53,9 +53,9 @@ server.register(_default);
 server.register(PublicRouter, { prefix: "/api" });
 server.register(AdminRouter, { prefix: "/api" });
 
-server.get('/metrics/prisma', async (_req: any, res: any) => {
-  res.end(await prisma.$metrics.prometheus())
-})
+// server.get('/metrics/prisma', async (_req: any, res: any) => {
+//   res.end(await prisma.$metrics.prometheus())
+// })
 
 server.setErrorHandler((err, req, rep) => {
   if (err instanceof HttpError) {

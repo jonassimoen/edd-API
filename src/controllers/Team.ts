@@ -166,80 +166,71 @@ export const DeleteDropTeamHandler = async (req: any, rep: any) => {
 
 export const GetTeamHandler = async (req: any, rep: any) => {
 	const weekId = await upcomingWeekId();
-	const [playersWithMultipleSelections, team, transfers] = await Promise.all([
-		prisma.player.findMany({
-			where: {
-				selections: {
-					some: {
-						teamId: +req.params.id,
-						weekId,
-					}
+	const teamWithSelections = await prisma.team.findUnique({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
+		where: {
+			id: +req.params.id,
+		},
+		select: {
+			budget: true,
+			created: true,
+			name: true,
+			points: true,
+			rank: true,
+			userId: true,
+			valid: true,
+			value: true,
+			weekId: true,
+			user: true,
+			selections: {
+				select: {
+					player: true,
+					captain: true,
+					starting: true,
+					value: true,
+					playerId: true,
+					weekId: true,
+					booster: true,
+					order: true,
+				},
+				where: {
+					weekId,
 				}
 			},
-			include: {
-				selections: {
-					where: {
-						teamId: +req.params.id,
-						weekId,
-					},
-					select: {
-						captain: true,
-						starting: true,
-						value: true,
-						playerId: true,
-						weekId: true,
-						booster: true,
-						order: true,
-					},
+			Transfer: {
+				where: {
+					weekId,
 				}
-			},
-		}),
-
-		prisma.team.findFirst({
-			cacheStrategy: {
-				ttl: 30,
-				swr: 60,
-			},
-			where: {
-				id: +req.params.id
-			},
-			include: {
-				user: true
 			}
-		}),
+		}
+	});
 
-		prisma.transfer.findMany({
-			where: {
-				teamId: +req.params.id,
-				weekId,
-			}
-		}),
-	])
-	
-	rep.send({ 
-		team: { ...team }, 
-		players: playersWithMultipleSelections
-			.sort((a, b) => a.selections[0].order! - b.selections[0].order!)
-			.map(({ selections, ...rest }) => {
-				const {order, ...sel} = selections[0];
-				return {
-					...rest,
-					selection: sel
-				}
-			}), 
-		transfers: transfers 
+	const {selections, Transfer, user, ...team} = teamWithSelections!;
+	const invertedSelections = selections?.map((sel: any) => {
+		const {player, ...selection} = sel;
+		return {
+			...player,
+			selection,
+		};		
+	});
+	rep.send({
+		team,
+		players: invertedSelections,
+		transfers: Transfer,
+		user: user,
 	});
 }
 
 export const GetPointsTeamHandler = async (req: any, rep: any) => {
 	const [
-		team, 
-		players, 
+		teamWithSelections, 
 		deadlineWeek,
-		transfers,
 		weeklyData,
 		globalData
-	]: [any, any, any, any, any, any] = await Promise.all([
+	]: [any, any, any, any] = await Promise.all([
 		prisma.team.findUnique({
 			cacheStrategy: {
 				ttl: 30,
@@ -247,15 +238,31 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 			},
 			where: {
 				id: +req.params.id,
-			}
-		}).catch((err: any) => rep.status(404)),
-
-		prisma.player.findMany({
-			cacheStrategy: {
-				ttl: 30,
-				swr: 60,
 			},
-			include: {
+			select: {
+				id: true,
+				badge: true,
+				budget: true,
+				created: true,
+				name: true,
+				points: true,
+				rank: true,
+				userId: true,
+				valid: true,
+				value: true,
+				weekId: true,
+				freeHit: true,
+				tripleCaptain: true,
+				fanFavourite: true,
+				superSubs: true,
+				hiddenGem: true,
+				goalRush: true,
+				user: true,
+				Transfer: {
+					where: {
+						weekId: +req.params.weekId,
+					}
+				},
 				selections: {
 					select: {
 						captain: true,
@@ -267,29 +274,41 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 						played: true,
 						endWinnerSelections: true,
 						points: true,
-						order: true,
+						player: {
+							select: {
+								id: true,
+								banned: true,
+								captain: true,
+								clubId: true,
+								externalId: true,
+								forename: true,
+								form: true,
+								injury: true,
+								name: true,
+								portraitUrl: true,
+								positionId: true,
+								setPieces: true,
+								short: true,
+								points: true,
+								star: true,
+								surname: true,
+								value: true,
+								pSelections: true,
+								stats: {
+									where: {
+										match: {
+											weekId: +req.params.weekId,
+										}
+									}
+								}
+							}
+						},
 					},
 					where: {
-						teamId: +req.params.id,
-						weekId: +req.params.weekId,
-					},
-				},
-				stats: {
-					where: {
-						match: {
-							weekId: +req.params.weekId,
-						}
-					}
-				}
-			},
-			where: {
-				selections: {
-					some: {
-						teamId: +req.params.id,
 						weekId: +req.params.weekId,
 					}
 				}
-			},
+			}
 		}),
 
 		prisma.week.findFirst({
@@ -301,44 +320,39 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 				id: +req.params.weekId
 			}
 		}),
-
-		prisma.transfer.findMany({
-			cacheStrategy: {
-				ttl: 30,
-				swr: 60,
-			},
-			where: {
-				teamId: +req.params.id,
-				weekId: +req.params.weekId,
-			}
-		}),
-
 		prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points) DESC) AS int) FROM "Selection" s WHERE "weekId" = ${+req.params.weekId} AND starting = 1 GROUP BY "teamId" ORDER BY rank ASC`,
 		prisma.$queryRaw`SELECT "teamId", CAST(SUM(points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(points) DESC) AS int) FROM "Selection" s WHERE starting = 1 GROUP BY "teamId" ORDER BY rank ASC`,
 	]);
+	
+	const {selections, Transfer, user, ...team} = teamWithSelections!;
+	const invertedSelections = selections?.map((sel: any) => {
+		const {player, ...selection} = sel;
+		return {
+			...player,
+			selections: [selection],
+		};		
+	});
 
 	rep.send({
-		players: players.sort((a: any, b: any) => a.selections[0].order! - b.selections[0].order!),
+		players: invertedSelections,
 		team: {
 			...team,
 			rank: globalData.find((teamData: any) => teamData.teamId === +req.params.id)?.rank || 0,
 			points: globalData.find((teamData: any) => teamData.teamId === +req.params.id)?.points || 0,
 		},
 		user: req.user,
-		transfers: transfers,
+		transfers: Transfer,
 		weeks: {
 			deadlineDate: deadlineWeek?.deadlineDate,
 			deadlineWeek: deadlineWeek?.id,
 			displayWeek: max([(deadlineWeek?.id || 0) - 1, 0]),
 		},
-		// todo: replace weekstat
 		weekStat: [{
 			rank: weeklyData.find((teamData: any) => teamData.teamId === +req.params.id)?.rank || 0,
 			points: weeklyData.find((teamData: any) => teamData.teamId === +req.params.id)?.points || 0,
 			winner: weeklyData[0]?.points || 0,
 			average: weeklyData.reduce((acc: number, curr: any) => curr.points + acc,0) / weeklyData.length,
 			teamId: +req.params.id,
-			value: 69,
 			weekId: +req.params.weekId
 		}],
 	});
