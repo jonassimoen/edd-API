@@ -30,6 +30,7 @@ export const app = initializeApp({
 });
 
 
+server.decorateRequest('user', '')
 server.addHook("preHandler", deserializeUser);
 
 server.register(require("fastify-stripe"), {
