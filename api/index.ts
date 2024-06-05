@@ -13,13 +13,15 @@ import path from "path";
 import _default from "fastify-metrics";
 import dotenv from "dotenv";
 import { percentageSelectionsJob } from "../src/utils/Jobs";
+import { PrismaClient } from "@prisma/client";
 dotenv.config();
 
-export const server = fastify({
+const prisma = new PrismaClient();
+
+const server = fastify({
   logger: true,
   disableRequestLogging: true,
 });
-
 
 export const app = initializeApp({
   credential: admin.credential.cert(JSON.parse(
@@ -27,14 +29,13 @@ export const app = initializeApp({
   ))
 });
 
+
 server.addHook("preHandler", deserializeUser);
 
-// server.register(require("fastify-list-routes"), { colors: true });
 server.register(require("fastify-stripe"), {
   apiKey: process.env.STRIPE_KEY
-})
+});
 server.register(fastifySchedulePlugin);
-
 server.register(cors, {
   origin:
     ["production", "staging"].includes(process.env.ENV || "dev")
@@ -45,24 +46,15 @@ server.register(cors, {
 server.register(cookies, {
   hook: "onRequest",
 });
-
 server.register(_default);
 
-server.register(fastifyStatic, {
-  root: path.join(__dirname, "../static"),
-  prefix: "/api/static/",
-  list: true,
-  index: false,
-});
+// server.register(require("fastify-list-routes"), { colors: true });
 
 server.register(PublicRouter, { prefix: "/api" });
 server.register(AdminRouter, { prefix: "/api" });
 
-server.get("/ping", (req: any, res: any) => {
-  res.status(200).send();
-});
-server.get("/metrics/prisma", async (req: any, res: any) => {
-  res.send(/*await prisma.$metrics.prometheus()*/);
+server.get('/metrics/prisma', async (_req: any, res: any) => {
+  res.end(await prisma.$metrics.prometheus())
 })
 
 server.setErrorHandler((err, req, rep) => {
@@ -80,20 +72,13 @@ server.setErrorHandler((err, req, rep) => {
   }
 });
 
+server.ready().then(
+  () => { server.scheduler.addSimpleIntervalJob(percentageSelectionsJob); }
+);
+
 server.listen({ host: "0.0.0.0", port: +(process.env.PORT || 8080) }, (err, address) => {
 	if (err) {
 		process.exit(1);
 	}
 	console.log(`Server listening at ${address}, environment: ${process.env.ENV}`);
 });
-
-server.ready().then(
-  () => { server.scheduler.addSimpleIntervalJob(percentageSelectionsJob); }
-);
-
-export default async (req: any, res: any) => {
-  await server.ready().then(
-    () => { server.scheduler.addSimpleIntervalJob(percentageSelectionsJob); }
-  );
-  server.server.emit("request", req, res);
-};
