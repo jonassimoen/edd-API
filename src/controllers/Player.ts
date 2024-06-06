@@ -8,6 +8,11 @@ export const GetPlayersHandler = async (req: any, rep: any) => {
 			ttl: 300,
 			swr: 600,
 		},
+    where: {
+      value: {
+        not: null
+      }
+    },
     orderBy: [{ value: "desc" }, { clubId: "asc" }, { id: "asc" }],
   });
   rep.send(players);
