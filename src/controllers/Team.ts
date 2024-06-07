@@ -65,7 +65,7 @@ const CheckValidTeam = async (allPlayerIds: number[], reqBody: any, weekId: numb
 		throw new HttpError("Too much players of the same club", 403);
 	}
 	// 3. Within budget
-	const totalValue = playerSelWithValue.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 0) }), { id: 0, value: 0 }).value || 0;
+	const totalValue = playerSelWithValue.reduce((prev, curr) => ({ id: 0, value: (prev.value || 0) + (curr.value || 99) }), { id: 0, value: 0 }).value || 0;
 	const budget = 100 - totalValue;
 	if (budget < 0) {
 		throw new HttpError(`Invalid budget (${budget})`, 403);
