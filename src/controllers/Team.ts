@@ -175,6 +175,7 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 			id: +req.params.id,
 		},
 		select: {
+			id: true,
 			budget: true,
 			created: true,
 			name: true,
