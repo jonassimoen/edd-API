@@ -167,10 +167,6 @@ export const DeleteDropTeamHandler = async (req: any, rep: any) => {
 export const GetTeamHandler = async (req: any, rep: any) => {
 	const weekId = await upcomingWeekId();
 	const teamWithSelections = await prisma.team.findUnique({
-		cacheStrategy: {
-			ttl: 30,
-			swr: 60,
-		},
 		where: {
 			id: +req.params.id,
 		},
@@ -199,6 +195,9 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 				},
 				where: {
 					weekId,
+				},
+				orderBy: {
+					order: 'asc'
 				}
 			},
 			Transfer: {
@@ -233,10 +232,6 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 		globalData
 	]: [any, any, any, any] = await Promise.all([
 		prisma.team.findUnique({
-			cacheStrategy: {
-				ttl: 30,
-				swr: 60,
-			},
 			where: {
 				id: +req.params.id,
 			},
@@ -307,6 +302,9 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 					},
 					where: {
 						weekId: +req.params.weekId,
+					},
+					orderBy: {
+						order: 'asc'
 					}
 				}
 			}
