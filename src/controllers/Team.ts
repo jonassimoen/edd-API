@@ -395,8 +395,8 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 		throw new HttpError("No team found", 404)
 	if(teamWithBoosters[req.body.type])
 		throw new HttpError("Booster already used", 403)
-	if(teamWithBoosters.selections && teamWithBoosters.selections.length >= 2)
-		throw new HttpError("Already 2 boosters used this week", 403)
+	if(teamWithBoosters.selections && teamWithBoosters.selections.length >= 1)
+		throw new HttpError("Already used a booster this week", 403)
 	
 	await prisma.$transaction(async (prisma) => {
 		await prisma.team.update({
