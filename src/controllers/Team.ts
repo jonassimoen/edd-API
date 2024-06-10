@@ -396,7 +396,7 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 	if(teamWithBoosters[req.body.type])
 		throw new HttpError("Booster already used", 403)
 	if(teamWithBoosters.selections && teamWithBoosters.selections.length >= 2)
-		throw new HttpError("Already 2 boosters this week", 403)
+		throw new HttpError("Already 2 boosters used this week", 403)
 	
 	await prisma.$transaction(async (prisma) => {
 		await prisma.team.update({
@@ -409,18 +409,24 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 		});
 
 		if(isPlayerBooster) {
-			await prisma.selection.update({
-				where: {
-					playerId_teamId_weekId: {
-						teamId: +req.params.id,
-						weekId: currentWeek,
-						playerId: req.body.playerId
+			try {
+				await prisma.selection.update({
+					where: {
+						playerId_teamId_weekId: {
+							teamId: +req.params.id,
+							weekId: currentWeek,
+							playerId: req.body.playerId
+						},
+						captain: 0,
+					},
+					data: {
+						booster: boosterUnCC
 					}
-				},
-				data: {
-					booster: boosterUnCC
-				}
-			})
+				});
+			}
+			catch {
+				throw new HttpError("You can't use a Player Booster on your (vice)captain!", 403);
+			}
 		}
 
 		await prisma.audit.create({
