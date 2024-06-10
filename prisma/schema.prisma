@@ -29,8 +29,8 @@ model User {
   payed     Boolean? @default(false)
   banned    Boolean? @default(false)
 
-  teams             Team[]
-  Audit             Audit[]
+  teams Team[]
+  Audit Audit[]
 }
 
 model Player {
@@ -54,7 +54,7 @@ model Player {
   star        Int?
   surname     String?
   value       Float?
-  pSelections Int? @default(0)
+  pSelections Int?    @default(0)
 
   selections Selection[]
   club       Club?       @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -273,7 +273,8 @@ model Translation {
 }
 
 model RefreshTime {
-  time DateTime @id @unique
+  time   DateTime @id @unique
+  update String?
 }
 
 model Audit {

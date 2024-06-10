@@ -8,7 +8,8 @@ export const LogoutHandler = async (req: any, rep: any) => {
 }
 
 export const GetProfileHandler = async (req: any, rep: any) => {
-		const user = await prisma.user.findUnique({
+		const [user, updates] = await Promise.all([
+			await prisma.user.findUnique({
 				cacheStrategy: {
 					ttl: 30,
 					swr: 60,
@@ -16,8 +17,21 @@ export const GetProfileHandler = async (req: any, rep: any) => {
 				where: {
 						id: req.user.id
 				}
-		})
-		rep.send(user);
+			}),
+			await prisma.refreshTime.findFirst({
+				cacheStrategy: {
+					ttl: 60,
+					swr: 60,
+				},
+				orderBy: {
+					time: 'desc'
+				}
+			}),
+		])
+		rep.send({
+			...user,
+			notification: {...updates}
+		});
 }
 
 export const PaymentIntentHandler = async (req: any, rep: any) => {
