@@ -146,6 +146,9 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 			throw new HttpError('Match has no home or away team assigned.',400);
 		}
 
+		// TODO: replace with a function to only update the Statistic's table & then call a DB function to calculate the points (see saved scripts in DBeaver) ==> Performance reason
+		// TODO: validate if the current solution is working or not, otherwise the above mentioned!
+
 		const playersWithPositionIds = await prisma.player.findMany({
 			select: {
 				id: true,
