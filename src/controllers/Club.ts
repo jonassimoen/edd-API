@@ -3,7 +3,15 @@ import HttpError from "../utils/HttpError";
 import axios from "axios";
 
 export const GetClubsHandler = async (req: any, rep: any) => {
-	const clubs = await prisma.club.findMany({});
+	const clubs = await prisma.club.findMany({
+		cacheStrategy: {
+			ttl: 30,
+			swr: 60,
+		},
+		orderBy: {
+			name: 'desc'
+		}
+	});
 	rep.send(clubs);
 }
 
