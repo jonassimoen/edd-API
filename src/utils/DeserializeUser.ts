@@ -31,7 +31,7 @@ export const reIssueAccessToken = async ({ refreshToken }: { refreshToken: strin
 
 
 export const deserializeUser = async(req: any, rep: any) => {
-		const accessToken = req.cookies["token"] || req.headers.authorization?.replace(/^Bearer\s/, "") || "";
+	const accessToken = req.cookies["token"] || req.headers.authorization?.replace(/^Bearer\s/, "") || "";
 	const refreshToken = req.cookies["refreshToken"] || req.headers["x-refresh"] || "";
 		if(!accessToken) {
 				return;

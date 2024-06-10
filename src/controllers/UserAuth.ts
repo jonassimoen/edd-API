@@ -19,6 +19,7 @@ export const refreshTokenCookieOptions: CookieSerializeOptions = {
 };
 
 export const GoogleAuthHandler = async (req: AccessTokenRequest, rep: any) => {
+	console.log("ok");
 	if(req.query.error) {
 		rep.redirect(process.env.WEBAPP_URL);
 	}
