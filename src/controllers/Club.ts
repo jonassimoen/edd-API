@@ -9,7 +9,7 @@ export const GetClubsHandler = async (req: any, rep: any) => {
 			swr: 60,
 		},
 		orderBy: {
-			name: 'desc'
+			name: 'asc'
 		}
 	});
 	rep.send(clubs);

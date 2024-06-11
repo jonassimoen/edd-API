@@ -42,6 +42,11 @@ export const GetPlayerStatisticsHandler = async (req: any, rep: any) => {
 			},
 			club: true
 		},
+		where: {
+			value: {
+				not: null,
+			}
+		}
 	});
 
 	const allStatsPlayers = players.map((player: any) => {
