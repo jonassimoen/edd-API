@@ -8,7 +8,7 @@ export const RequireTeamOwner = (req: any, rep: any, done: any) => {
 			userId: true,
 		},
 		where: {
-			id: +req.params.id,
+			id: +req.params.id || 0,
 		}
 	}).then((data) => {
 		if(data?.userId && data.userId !== user.id){
