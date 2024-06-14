@@ -182,6 +182,12 @@ export const GetTeamHandler = async (req: any, rep: any) => {
 			value: true,
 			weekId: true,
 			user: true,
+			freeHit: true,
+			tripleCaptain: true,
+			fanFavourite: true,
+			superSubs: true,
+			hiddenGem: true,
+			goalRush: true,
 			selections: {
 				select: {
 					player: true,
@@ -397,6 +403,8 @@ export const PostBoosterTeamHandler = async (req: any, rep: any) => {
 		throw new HttpError("Booster already used", 403)
 	if(teamWithBoosters.selections && teamWithBoosters.selections.length >= 1)
 		throw new HttpError("Already used a booster this week", 403)
+
+	console.log(boosterUnCC);
 	
 	await prisma.$transaction(async (prisma) => {
 		await prisma.team.update({
