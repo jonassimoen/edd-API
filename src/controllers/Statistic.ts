@@ -195,7 +195,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 			"penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed",
 			"duelsTotal", "duelsWon", "aerialDuelsTotal", "aerialDuelsWon",
 			"errorLeadingGoal", "bigChancesCreated", "bigChancesMissed",
-			"goalsAgainst"
+			"goalsAgainst", "ownGoals"
 		]
 		
 		await prisma.$transaction([
