@@ -162,7 +162,7 @@ export const calculatePoints = (playerStat: Statistic, positionId: number | null
 
 	//// PASSING
 	// Passing accuracy above 85%
-	tempPoints += playerStat.totalPasses !== 0 && (playerStat.accuratePasses / playerStat.totalPasses > 0.85) ? PPS.PASS_ACCURACY_MORE_85[positionId] : 0;
+	tempPoints += playerStat.totalPasses > 10 && (playerStat.accuratePasses / playerStat.totalPasses > 0.85) ? PPS.PASS_ACCURACY_MORE_85[positionId] : 0;
 	// Key passes (per 2)
 	tempPoints += (Math.floor(playerStat.keyPasses / 2) || 0) * PPS.KEY_PASSES_PER_2[positionId];
 	// Accurate crosses (per 2)
