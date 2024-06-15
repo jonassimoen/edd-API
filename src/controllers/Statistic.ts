@@ -169,13 +169,14 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 		});
 		const playersWithCalculatedPoints = req.body.stats.map((stat: any) => {
 			const player = playersWithPositionIds.find((player: any) => player.id === stat.playerId);
+			const opponentGoals = player?.clubId === match.homeId ? req.body.goalMinutes.away : req.body.goalMinutes.home;
 			const statGoalsAgainst = {
 				...stat, 
-				goalsAgainst: stat.red ? req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm).length : req.body.goalMinutes.home.filter((gm: number) => stat.in <= gm && stat.out >= gm).length
+				goalsAgainst: stat.red ? opponentGoals.filter((gm: number) => stat.in <= gm).length : opponentGoals.filter((gm: number) => stat.in <= gm && stat.out >= gm).length
 			}
 			const calculatedPoints = calculatePoints(statGoalsAgainst, player?.positionId );
 			return ({
-				...stat,
+				...statGoalsAgainst,
 				clubId: player!.clubId,
 				minutesPlayed: Math.min(90, stat.out) - stat.in || 0,
 				calculatedPoints,
@@ -213,6 +214,7 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 							players: {
 								update: homeP.map((stat: ExtendedStat) => {
 									const reducedStat = pick(pickBy(stat, (v, k) => (v !== null && v !== undefined)), subselection);
+									console.log(stat.playerId, stat.goalsAgainst);
 									return ({
 										where: {
 											id: stat.playerId,
