@@ -141,12 +141,12 @@ export const PostRecalculateMatchPoints = async (req: any, rep: any) => {
 		})),*/
 		// Recalculation logic
 		await prisma.$queryRaw`CALL "recalculateMatchPoints"(${match?.id})`
-		// Update player and team points
-		await prisma.$queryRaw`CALL "calculateTeamAndPlayerPoints"(${match?.weekId})`
 		// Captain - Vice Captain points multipliers (Triple Captain / Vice victory)
 		await prisma.$queryRaw`CALL "processViceCaptainAndBoosters"(${match?.weekId})`,
 		// HiddenGem - GoalRush points multipliers
 		await prisma.$queryRaw`CALL "processPlayerBoosters"(${match?.weekId})`
+		// Update player and team points
+		await prisma.$queryRaw`CALL "calculateTeamAndPlayerPoints"(${match?.weekId})`
 	}, {
 		maxWait: 5000,
 		timeout: 10000,
