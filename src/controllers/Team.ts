@@ -345,7 +345,7 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 			rank: globalData.find((teamData: any) => teamData.teamId === +req.params.id)?.rank || 0,
 			points: globalData.find((teamData: any) => teamData.teamId === +req.params.id)?.points || 0,
 		},
-		user: req.user,
+		user: user,
 		transfers: Transfer,
 		weeks: {
 			deadlineDate: deadlineWeek?.deadlineDate,
