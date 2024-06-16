@@ -328,6 +328,10 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 	const match = await prisma.match.findFirst({
 		where: {
 			id: +req.params.matchId
+		},
+		include: {
+			home: true,
+			away: true,
 		}
 	});
 
@@ -343,7 +347,7 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 		}
 	});
 
-	const res = await axios.request({
+	const resStat = await axios.request({
 		method: 'get',
 		url: 'https://v3.football.api-sports.io/fixtures/players',
 		headers: {
@@ -356,20 +360,63 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 	});
 
 
-	if (res.status != 200 || !res.data || (Array.isArray(res.data.errors) && (res.data.errors.length > 0)) || Object.keys(res.data.errors).length !== 0) {
-		throw new HttpError(Object.values(res.data.errors).reduce((s, v) => `${s}${v} `, '') as string, 429)
+	if (resStat.status != 200 || !resStat.data || (Array.isArray(resStat.data.errors) && (resStat.data.errors.length > 0)) || Object.keys(resStat.data.errors).length !== 0) {
+		throw new HttpError(Object.values(resStat.data.errors).reduce((s, v) => `${s}${v} `, '') as string, 429)
 	}
-	if(res.data.response?.length === 0) {
+	if(resStat.data.response?.length === 0) {
 		throw new HttpError("No stats yet",404);
 	}
-	const converted = res.data.response.map((resp: any) => {
+
+	const resEvents = await axios.request({
+		method: 'get',
+		url: 'https://v3.football.api-sports.io/fixtures/events',
+		headers: {
+			'x-rapidapi-key': 'a47085f2b2fcd66e93caad6b7d7f6b09',
+			'x-rapidapi-host': 'v3.football.api-sports.io'
+		},
+		params: {
+			'fixture': match?.externalId
+		}
+	});
+
+
+	if (resEvents.status != 200 || !resEvents.data || (Array.isArray(resEvents.data.errors) && (resEvents.data.errors.length > 0)) || Object.keys(resEvents.data.errors).length !== 0) {
+		throw new HttpError(Object.values(resEvents.data.errors).reduce((s, v) => `${s}${v} `, '') as string, 429)
+	}
+	if (resEvents.data.response?.length === 0) {
+		throw new HttpError("No stats yet",404);
+	}
+
+	const subsEvents = resEvents.data.response.filter((event: any) => event.type === 'subst').map((event: any) => ({
+		subIn: event.player.id,
+		subOut: event.assist.id,
+		minute: event.time.elapsed >= 90 ? event.time.elapsed + event.time.extra : event.time.elapsed
+	}));
+	const goalsEvents = resEvents.data.response.filter((event: any) => event.type === 'Goal').reduce((acc: number[][], current: any) => {
+		const homeG = acc[0];
+		const awayG = acc[1];
+		if(current.team.id === match?.home?.externalId) {
+			homeG.push(current.time.elapsed >= 90 ? current.time.elapsed + current.time.extra : current.time.elapsed);
+		} else if(current.team.id === match?.away?.externalId) {
+			awayG.push(current.time.elapsed >= 90 ? current.time.elapsed + current.time.extra : current.time.elapsed);
+		}
+		return [homeG, awayG]
+	}, [[],[]]);
+
+
+	const converted = resStat.data.response.map((resp: any) => {
 		return resp.players.map((player: any) => {
 			const stats = player.statistics[0];
+			const started = !(!!stats.games.substitute)
+			const minuteIn = started ? 0 : subsEvents.find((event: any) => event.subIn === player.player.id)?.minute || 0;
+			const minuteOut = subsEvents.find((event: any) => event.subOut === player.player.id)?.minute || ((started || (minuteIn != 0 ))? 90 : 0);
 
 			return ({
 				id: mapExternalInternalIds.find((p: any) => p.externalId == player.player.id)?.id,
+				in: minuteIn,
+				out: minuteOut,
 				minutesPlayed: +stats.games.minutes || 0,
-				starting: !(!!stats.games.substitute),
+				starting: started,
 				shots: +stats.shots.total || 0,
 				shotsOnTarget: +stats.shots.on || 0,
 				goals: +stats.goals.total || 0,
@@ -411,5 +458,8 @@ export const ImportMatchStatisticHandler = async (req: any, rep: any) => {
 		}
 	});
 
-	rep.send(convertedToSingleTeam);
+	rep.send({
+		players: convertedToSingleTeam,
+		goals: goalsEvents, 
+	});
 }
