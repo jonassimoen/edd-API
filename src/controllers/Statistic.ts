@@ -214,7 +214,6 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 							players: {
 								update: homeP.map((stat: ExtendedStat) => {
 									const reducedStat = pick(pickBy(stat, (v, k) => (v !== null && v !== undefined)), subselection);
-									console.log(stat.playerId, stat.goalsAgainst);
 									return ({
 										where: {
 											id: stat.playerId,

@@ -116,7 +116,7 @@ export const PostWeekValidateHandler = async (req: any, rep: any) => {
 			for (const team of teamsWithSelections) {
 				const starting = team.selections.filter((sel: any) => sel.starting);
 				const startingLineup = starting.reduce((res: number[], cur: any) => {
-					res[cur.positionId] = (res[cur.positionId] || 0) + 1;
+					res[cur.player.positionId] = (res[cur.player.positionId] || 0) + 1;
 					return res;
 				}, [0,0,0,0,0])
 
