@@ -190,12 +190,12 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 			"penaltySaved", "saves", "highClaims",
 			"shotsBlocked", "shotsOnTarget", "shotsOffTarget",
 			"keyPasses", "accuratePasses", "totalPasses", "totalCrosses", "accurateCrosses", 
-			"clearances", "blocks", "interceptions", "tackles",
+			"clearances", "blocks", "interceptions", "tackles", "lineClearances",
 			"dribblesAttempted", "dribblesSuccess", "dribblesPast",
 			"foulsDrawn", "foulsCommited",
 			"penaltyCommited", "penaltyWon", "penaltyScored", "penaltyMissed",
 			"duelsTotal", "duelsWon", "aerialDuelsTotal", "aerialDuelsWon",
-			"errorLeadingGoal", "bigChancesCreated", "bigChancesMissed",
+			"errorLeadingShot", "errorLeadingGoal", "bigChancesCreated", "bigChancesMissed",
 			"goalsAgainst", "ownGoals"
 		]
 		
@@ -306,9 +306,9 @@ export const PutMatchStatisticHandler = async (req: any, rep: any) => {
 				}
 			}),
 			// Captain - Vice Captain points multipliers (Triple Captain / Vice victory)
-			prisma.$queryRaw`CALL "processViceCaptainAndBoosters"(${match.weekId})`,
+			//prisma.$queryRaw`CALL "processViceCaptainAndBoosters"(${match.weekId})`,
 			// HiddenGem - GoalRush points multipliers
-			prisma.$queryRaw`CALL "processPlayerBoosters"(${match.weekId})`
+			//prisma.$queryRaw`CALL "processPlayerBoosters"(${match.weekId})`
 		]);
 
 		rep.send({ msg: `Statistics saved for Match with id ${match?.id}` });
