@@ -326,7 +326,7 @@ export const GetPointsTeamHandler = async (req: any, rep: any) => {
 			}
 		}),
 		prisma.$queryRaw`SELECT t.id as "teamId", CAST(SUM(s.points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(s.points) DESC) AS int) FROM "Selection" s JOIN "Team" t on t.id = s."teamId" WHERE s."weekId" = ${+req.params.weekId} AND (s.starting = 1 OR (t."superSubs" = ${+req.params.weekId} and s.starting = 0)) GROUP BY t.id ORDER BY rank ASC`,
-		prisma.$queryRaw`SELECT t.id as "teamId", CAST(SUM(s.points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(s.points) DESC) AS int) FROM "Selection" s JOIN "Team" t on t.id = s."teamId" WHERE (s.starting = 1 OR (t."superSubs" = ${+req.params.weekId} and s.starting = 0)) GROUP BY t.id ORDER BY rank ASC`,
+		prisma.$queryRaw`SELECT t.id as "teamId", CAST(SUM(s.points) AS int) AS points, CAST(RANK() OVER(ORDER BY SUM(s.points) DESC) AS int) FROM "Selection" s JOIN "Team" t on t.id = s."teamId" WHERE (s.starting = 1 OR (t."superSubs" = s."weekId" and s.starting = 0)) GROUP BY t.id ORDER BY rank ASC`,
 	]);
 	
 	const {selections, Transfer, user, ...team} = teamWithSelections!;
