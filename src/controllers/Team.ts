@@ -660,7 +660,8 @@ export const PostTransfersTeamHandler = async (req: any, rep: any) => {
 						},
 					},
 					data: {
-						playerId: transfer.inId
+						playerId: transfer.inId,
+						value: playersWithValues.find((p: any) => p.playerId === transfer.inId)?.value | 0,
 					}
 				})
 			));
